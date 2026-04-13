@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- v2 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -541,6 +540,212 @@
     opacity: 1;
     transform: translateY(0);
   }
+
+  /* Bullet lists */
+  .bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .bullets li {
+    position: relative;
+    padding-left: 0;
+    margin-bottom: 0.9rem;
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 720px;
+  }
+  .bullets li::before { display: none; }
+  .bullets li strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .bullets.tight li {
+    font-size: 0.98rem;
+    margin-bottom: 0.55rem;
+    line-height: 1.55;
+  }
+
+  /* Nav CTA button */
+  nav .nav-cta {
+    color: #0a0a0a !important;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.5rem 0.9rem;
+    border-radius: 2px;
+    font-weight: 500;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  nav .nav-cta:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  nav .nav-cta:active,
+  nav .nav-cta.is-loading {
+    background: #d4a574 !important;
+    border-color: #d4a574 !important;
+    transform: scale(0.97);
+  }
+  nav .nav-cta.is-loading { cursor: wait; }
+
+  /* ============ PRINT STYLES ============ */
+  @media print {
+    @page {
+      size: A4;
+      margin: 15mm 14mm;
+    }
+    html, body {
+      background: #fff !important;
+      color: #000 !important;
+      font-size: 10pt !important;
+      line-height: 1.4 !important;
+    }
+    body::before { display: none !important; }
+    nav, .side-mark, footer, .contact-links, .hero-label {
+      display: none !important;
+    }
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    section {
+      padding: 0 0 12pt 0 !important;
+      page-break-inside: avoid;
+    }
+    .hero {
+      min-height: auto !important;
+      padding: 0 0 10pt 0 !important;
+      border-bottom: 1px solid #000;
+      margin-bottom: 12pt;
+    }
+    .container { padding: 0 !important; max-width: 100% !important; }
+    .hero h1 {
+      font-size: 26pt !important;
+      line-height: 1 !important;
+      margin-bottom: 6pt !important;
+    }
+    .hero h1 br { display: none; }
+    .hero h1 em { color: #000 !important; }
+    .hero-sub {
+      font-size: 10pt !important;
+      max-width: 100% !important;
+      margin-bottom: 8pt !important;
+      color: #000 !important;
+      animation: none !important;
+      opacity: 1 !important;
+    }
+    .hero-sub strong { color: #000 !important; }
+    .hero-meta {
+      padding-top: 6pt !important;
+      gap: 16pt !important;
+      border-top-color: #000 !important;
+      animation: none !important;
+      opacity: 1 !important;
+    }
+    .hero-meta .val, .hero-meta .val a { color: #000 !important; border: none !important; }
+    .hero-meta .label { color: #555 !important; }
+    .section-head {
+      grid-template-columns: 1fr !important;
+      gap: 2pt !important;
+      margin-bottom: 6pt !important;
+      border-bottom: 1px solid #000;
+      padding-bottom: 3pt;
+    }
+    .section-head h2 {
+      font-size: 14pt !important;
+      margin-top: 2pt;
+    }
+    .section-head h2 em, .section-head .num { color: #000 !important; }
+    .about-body, .expertise-grid, .exp-grid, .certs {
+      grid-template-columns: 1fr !important;
+      gap: 0 !important;
+    }
+    .about-body .spacer, .expertise-grid .spacer, .exp-grid .spacer, .certs .spacer { display: none; }
+    .bullets li {
+      font-size: 9.5pt !important;
+      color: #000 !important;
+      margin-bottom: 2pt !important;
+      line-height: 1.35 !important;
+    }
+    .bullets li::before { background: #000 !important; transform: rotate(45deg) !important; }
+    .bullets li strong { color: #000 !important; }
+    .expertise-cats {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6pt !important;
+    }
+    .cat {
+      padding: 6pt 8pt !important;
+      border: 1px solid #999 !important;
+      background: #fff !important;
+      page-break-inside: avoid;
+    }
+    .cat h3 { font-size: 10pt !important; margin-bottom: 4pt !important; }
+    .cat li {
+      font-size: 7.5pt !important;
+      padding: 2pt 4pt !important;
+      border-color: #999 !important;
+      color: #000 !important;
+    }
+    .cat::before { background: #000 !important; }
+    /* Experience — dual track collapses to single column in print */
+    .dual-headers { display: none !important; }
+    .era {
+      grid-template-columns: 1fr !important;
+      gap: 4pt !important;
+      margin-bottom: 10pt !important;
+      page-break-inside: avoid;
+    }
+    .emp-card {
+      position: static !important;
+      padding: 6pt 8pt !important;
+      background: #f5f5f5 !important;
+      border: 1px solid #999 !important;
+      border-left: 3px solid #000 !important;
+      margin-bottom: 4pt;
+    }
+    .emp-card h3 { font-size: 11pt !important; }
+    .emp-card .emp-period, .emp-card .emp-place { font-size: 8pt !important; color: #333 !important; }
+    .emp-card .roles { padding-top: 4pt !important; border-top-color: #999 !important; }
+    .emp-card .roles li { font-size: 8.5pt !important; margin-bottom: 3pt !important; color: #333 !important; }
+    .emp-card .roles strong { color: #000 !important; }
+    .emp-card .roles .role-period { font-size: 6.5pt !important; color: #666 !important; }
+    .cli-track {
+      padding-left: 10pt !important;
+      border-left: 1px solid #999 !important;
+      gap: 8pt !important;
+    }
+    .cli-entry::before {
+      left: -13pt !important;
+      top: 4pt !important;
+      width: 5px; height: 5px;
+      background: #000 !important;
+      border-color: #000 !important;
+    }
+    .cli-entry h4 {
+      font-size: 10pt !important;
+      color: #000 !important;
+    }
+    .cli-entry h4 em { color: #000 !important; }
+    .cli-entry .period { font-size: 7.5pt !important; color: #555 !important; margin-bottom: 1pt !important; }
+    .cli-entry .place { font-size: 7.5pt !important; color: #555 !important; margin-bottom: 3pt !important; }
+    .cert-list {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 4pt !important;
+    }
+    .cert {
+      padding: 5pt 8pt !important;
+      border: 1px solid #999 !important;
+      background: #fff !important;
+    }
+    .cert .mark { color: #000 !important; }
+    .cert span.title { color: #000 !important; font-size: 9pt !important; }
+    .contact-wrap { padding: 8pt 0 !important; text-align: left !important; }
+    .contact-wrap h2 { font-size: 14pt !important; margin: 4pt 0 !important; }
+    .contact-wrap h2 em { color: #000 !important; }
+    .contact-email { font-size: 11pt !important; color: #000 !important; border: none !important; }
+    .contact-wrap .mono { color: #000 !important; }
+  }
 </style>
 </head>
 <body>
@@ -553,6 +758,7 @@
       <li><a href="#expertise" class="mono">Expertise</a></li>
       <li><a href="#experience" class="mono">Experience</a></li>
       <li><a href="#contact" class="mono">Contact</a></li>
+      <li><a href="#" id="download-cv" class="mono nav-cta">Download CV ↓</a></li>
     </ul>
   </div>
 </nav>
@@ -605,33 +811,16 @@
     <div class="about-body reveal">
       <div class="spacer"></div>
       <div class="about-text">
-        <p>
-          I lead engineering organisations that deliver <strong>digital finance platforms</strong>
-          at the bar set by Tier-1 banks: regulated, resilient and fast to evolve.
-          My remit spans technology strategy, architecture, delivery and the
-          people systems that sustain them.
-        </p>
-        <p class="muted">
-          Today I lead the DevOps team for Lloyds Banking Group's Digital
-          Finance programme — the bank's move into tokenised assets on the
-          Canton Network with Archax and Fireblocks on GCP — while also
-          partnering with engineering squads on microservices architecture
-          and Java Quarkus delivery. Earlier I owned the federated API
-          Management programme across IBM API Connect, Azure APIM and
-          Apigee X, and led delivery of the UK Open Banking Regulatory
-          Sandbox end-to-end: security architecture, supplier engagement
-          and the cross-functional squads that shipped it.
-        </p>
-        <p class="muted">
-          Across two decades at Publicis Sapient, HCL and Kumaran Systems I've
-          built and mentored teams across London, Houston, Raleigh and
-          Bangalore, hired engineers into senior roles, and partnered with
-          trading desks, risk, finance and business unit leadership to turn
-          ambiguous problems into funded roadmaps. I still read code, write
-          architecture, and ship — but my day job is making other engineers
-          great. Google Cloud certified Generative AI Leader; MBA in
-          International Business; Sun Certified Java Professional.
-        </p>
+        <ul class="bullets">
+          <li><strong>21+ years</strong> delivering software for global banks and Tier-1 financial services clients.</li>
+          <li>Currently lead the <strong>DevOps team for Lloyds' Digital Finance programme</strong> — tokenised assets on the Canton Network with Archax and Fireblocks on GCP.</li>
+          <li>Partner with engineering squads on <strong>microservices architecture and Java Quarkus delivery</strong>, setting standards for build, release and operational readiness.</li>
+          <li>Previously owned the federated <strong>API Management programme</strong> across IBM API Connect, Azure APIM and Apigee X at Lloyds.</li>
+          <li>Led delivery of the <strong>UK Open Banking Regulatory Sandbox</strong> end-to-end: security architecture (OIDC, OAuth 2.0, MA-TLS), supplier engagement, cross-functional squads.</li>
+          <li>Introduced <strong>multi-agent AI workflows</strong> automating the full API lifecycle from design to delivery.</li>
+          <li>Built and mentored teams across <strong>London, Houston, Raleigh and Bangalore</strong>; hired engineers into senior technical roles.</li>
+          <li>Still hands-on in Java, Node.js and Python. Google Cloud certified Generative AI Leader · MBA International Business · Sun Certified Java Professional.</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -738,57 +927,59 @@
               <div class="period mono">Feb 2026 — Present</div>
               <h4>Lloyds Banking Group <em>· DevOps Lead, Digital Finance</em></h4>
               <div class="place">London, United Kingdom</div>
-              <p>Leading the DevOps team for Lloyds' Digital Finance programme —
-              the bank's move into tokenised assets on the Canton Network with
-              Archax and Fireblocks on GCP. Partner with engineering squads on
-              microservices architecture and Java Quarkus delivery, setting
-              standards for build, release and operational readiness.</p>
+              <ul class="bullets tight">
+                <li>Lead the DevOps team for Lloyds' Digital Finance programme.</li>
+                <li>Tokenised-assets initiative on the Canton Network with Archax and Fireblocks on GCP.</li>
+                <li>Partner with engineering squads on microservices architecture and Java Quarkus delivery.</li>
+                <li>Set standards for build, release and operational readiness.</li>
+              </ul>
             </div>
 
             <div class="cli-entry">
               <div class="period mono">Sep 2018 — Jan 2026</div>
               <h4>Lloyds Banking Group <em>· API Federation &amp; Open Banking</em></h4>
               <div class="place">London, United Kingdom</div>
-              <p>Led the federation of API Management across IBM API Connect,
-              Azure APIM and Apigee X — a strategic programme unifying developer
-              experience and governance across the bank. Owned end-to-end
-              delivery of the UK Open Banking Regulatory Sandbox on ForgeRock
-              Model Bank: security architecture (OIDC, OAuth 2.0, MA-TLS,
-              non-repudiation), ETL tooling, and an in-house BDD test framework
-              adopted across squads. Later introduced multi-agent AI workflows
-              automating the full API lifecycle from design to delivery.</p>
+              <ul class="bullets tight">
+                <li>Led API Management federation across IBM API Connect, Azure APIM and Apigee X — unifying developer experience and governance bank-wide.</li>
+                <li>Owned end-to-end delivery of the UK Open Banking Regulatory Sandbox on ForgeRock Model Bank.</li>
+                <li>Security architecture: OIDC, OAuth 2.0, MA-TLS, JWT message signing, non-repudiation validation.</li>
+                <li>Built ETL tooling and an in-house BDD test framework adopted across squads.</li>
+                <li>Introduced multi-agent AI workflows automating the full API lifecycle from design to delivery.</li>
+              </ul>
             </div>
 
             <div class="cli-entry">
               <div class="period mono">May 2015 — Jun 2018</div>
               <h4>Fidelity Investments <em>· Platform Centre of Excellence</em></h4>
               <div class="place">Bangalore, India</div>
-              <p>Drove enterprise adoption of lightweight container-based
-              microservices across Fidelity's Personal Investing group, and
-              delivered the Account Opening platform. Mentored engineers
-              into senior technical roles and partnered with product
-              leadership to shape platform strategy.</p>
+              <ul class="bullets tight">
+                <li>Drove enterprise adoption of container-based microservices across Fidelity's Personal Investing group.</li>
+                <li>Delivered the Account Opening platform.</li>
+                <li>Mentored engineers into senior technical roles.</li>
+                <li>Partnered with product leadership on platform strategy.</li>
+              </ul>
             </div>
 
             <div class="cli-entry">
               <div class="period mono">Mar 2014 — Feb 2015</div>
               <h4>Fidelity Investments <em>· Fund Compliance Engineering (COMET)</em></h4>
               <div class="place">Raleigh-Durham, North Carolina</div>
-              <p>Delivered the Fund Compliance Monitoring Engineering
-              platform, working directly with compliance and business
-              stakeholders on requirements and rollout.</p>
+              <ul class="bullets tight">
+                <li>Delivered the Fund Compliance Monitoring Engineering platform (COMET).</li>
+                <li>Worked directly with compliance and business stakeholders on requirements and rollout.</li>
+              </ul>
             </div>
 
             <div class="cli-entry">
               <div class="period mono">Jun 2010 — Mar 2014</div>
               <h4>Citigroup <em>· Commodities Fundamental Data &amp; Analytics</em></h4>
               <div class="place">Houston · London · Bangalore</div>
-              <p>Owned the Commodities Fundamental Data &amp; Analytics
-              platform across three geographies. Translated requirements
-              from trading desks, risk and finance into delivery for
-              offshore teams; managed stakeholder expectations at
-              business-unit level; guided the technical roadmap for
-              multi-modal data ingestion, parsing and quality.</p>
+              <ul class="bullets tight">
+                <li>Owned the Commodities Fundamental Data &amp; Analytics platform across Houston, London and Bangalore.</li>
+                <li>Translated requirements from trading desks, risk and finance into delivery for offshore teams.</li>
+                <li>Managed stakeholder expectations at business-unit level.</li>
+                <li>Guided the technical roadmap for multi-modal data ingestion, parsing and quality.</li>
+              </ul>
             </div>
 
           </div>
@@ -820,12 +1011,13 @@
               <div class="period mono">Jun 2006 — May 2010</div>
               <h4>Telecom OEM <em>· Element Management System</em></h4>
               <div class="place">India</div>
-              <p>Technical ownership of an EMS platform — architecture,
-              effort estimation, performance engineering, memory profiling,
-              query optimisation and mentoring. Contributed to new business
-              pursuits and absorbed emerging technologies into delivery
-              practice. Earlier, worked on the SavaJe Mobile OS TCK
-              compliance and JUnit coverage.</p>
+              <ul class="bullets tight">
+                <li>Technical ownership of an Element Management System platform.</li>
+                <li>Architecture, effort estimation, performance engineering, memory profiling and query optimisation.</li>
+                <li>Technical mentoring of junior engineers.</li>
+                <li>Contributed to new business pursuits and delivery practice.</li>
+                <li>Earlier: SavaJe Mobile OS TCK compliance and JUnit coverage.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -848,9 +1040,10 @@
               <div class="period mono">May 2004 — May 2006</div>
               <h4>Nortel Networks <em>· Trouble Ticket System</em></h4>
               <div class="place">Canada (delivered from India)</div>
-              <p>Migrated a Nortel Networks Trouble Ticket System from
-              Oracle Forms to Java Swing / J2EE, including a custom Java
-              graphics engine to replicate Oracle Forms chart rendering.</p>
+              <ul class="bullets tight">
+                <li>Migrated a Nortel Networks Trouble Ticket System from Oracle Forms to Java Swing / J2EE.</li>
+                <li>Built a custom Java graphics engine replicating Oracle Forms chart rendering.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -913,6 +1106,7 @@
   </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
   // Nav scroll state
   const nav = document.querySelector('nav');
@@ -930,6 +1124,69 @@
     });
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Download PDF — html2pdf.js (client-side, no server roundtrip)
+  const dlBtn = document.getElementById('download-cv');
+  if (dlBtn) {
+    dlBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (dlBtn.classList.contains('is-loading')) return;
+
+      const originalText = dlBtn.textContent;
+      dlBtn.classList.add('is-loading');
+      dlBtn.textContent = 'Preparing…';
+
+      // Force any scroll-triggered reveals to their visible state for capture
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+
+      // Build a clean clone of <main content> without nav / footer / side mark
+      const clone = document.createElement('div');
+      clone.style.cssText = 'background:#ffffff;padding:28px 32px;width:794px;color:#0a0a0a;font-family:Fraunces,Georgia,serif;';
+      document.querySelectorAll('section').forEach(sec => {
+        clone.appendChild(sec.cloneNode(true));
+      });
+
+      // Strip dark-mode chrome and sticky positioning from the clone
+      const style = document.createElement('style');
+      style.textContent = `
+        .pdf-wrap section { padding: 18px 0 !important; }
+        .pdf-wrap .hero { min-height: auto !important; padding: 8px 0 20px !important; }
+        .pdf-wrap .emp-card { position: static !important; }
+        .pdf-wrap .reveal { opacity: 1 !important; transform: none !important; }
+        .pdf-wrap .era, .pdf-wrap .cat, .pdf-wrap .cert, .pdf-wrap .cli-entry { page-break-inside: avoid; break-inside: avoid; }
+        .pdf-wrap section { page-break-inside: avoid; }
+      `;
+      clone.classList.add('pdf-wrap');
+      clone.prepend(style);
+
+      // Offscreen render container
+      const holder = document.createElement('div');
+      holder.style.cssText = 'position:fixed;left:-10000px;top:0;';
+      holder.appendChild(clone);
+      document.body.appendChild(holder);
+
+      try {
+        await html2pdf()
+          .set({
+            margin:       [10, 10, 12, 10],
+            filename:     'Jothipazhani_Nagarajan_CV.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['css', 'legacy'] }
+          })
+          .from(clone)
+          .save();
+      } catch (err) {
+        console.error('PDF generation failed:', err);
+        alert('Sorry — PDF generation failed. Please try again.');
+      } finally {
+        document.body.removeChild(holder);
+        dlBtn.classList.remove('is-loading');
+        dlBtn.textContent = originalText;
+      }
+    });
+  }
 </script>
 
 </body>
