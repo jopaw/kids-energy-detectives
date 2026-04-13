@@ -1109,6 +1109,8 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
 <script>
   // Nav scroll state
   const nav = document.querySelector('nav');
@@ -1127,23 +1129,255 @@
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  // Download PDF — native browser print (produces vector PDF with selectable text).
-  // The @media print stylesheet above formats the page for A4.
+  // ============ CV PDF generator (pdfmake, vector output) ============
+  // Text is pulled from the live DOM so the HTML remains the single source
+  // of truth. Layout primitives (columns, stacks, tables, lists) live here.
+
+  const PDF_COLORS = {
+    text:   '#0a0a0a',
+    muted:  '#3d3c38',
+    dim:    '#6b6a64',
+    accent: '#8a5f28',
+    border: '#d8d6ce',
+    card:   '#fafaf7',
+  };
+  const PDF_CONTENT_WIDTH = 515; // A4 595pt - 2 * 40pt margin
+
+  // Normalise whitespace and flatten <br> into a single space.
+  function pdfText(el) {
+    if (!el) return '';
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('br').forEach((br) => br.replaceWith(' '));
+    return clone.textContent.replace(/\s+/g, ' ').trim();
+  }
+
+  // Walk a DOM element's children and emit pdfmake inline-text tokens,
+  // preserving <strong> / <em> styling and collapsing <br> to spaces.
+  function pdfInline(el) {
+    const out = [];
+    if (!el) return out;
+    el.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const t = node.textContent.replace(/\s+/g, ' ');
+        if (t) out.push({ text: t });
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName.toLowerCase();
+        if (tag === 'br') { out.push({ text: ' ' }); return; }
+        const children = pdfInline(node);
+        if (tag === 'strong' || tag === 'b') {
+          children.forEach((c) => out.push({ ...c, bold: true, color: PDF_COLORS.text }));
+        } else if (tag === 'em' || tag === 'i') {
+          children.forEach((c) => out.push({ ...c, italics: true, color: PDF_COLORS.accent }));
+        } else {
+          children.forEach((c) => out.push(c));
+        }
+      }
+    });
+    return out;
+  }
+
+  function pdfSectionHeader(num, label, sectionId) {
+    const h2 = document.querySelector('#' + sectionId + ' .section-head h2');
+    return {
+      margin: [0, 16, 0, 8],
+      stack: [
+        { text: num + ' / ' + label, fontSize: 7, color: PDF_COLORS.accent, characterSpacing: 0.8, margin: [0, 0, 0, 3] },
+        { text: pdfInline(h2), fontSize: 13, color: PDF_COLORS.text, margin: [0, 0, 0, 4] },
+        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: PDF_CONTENT_WIDTH, y2: 0, lineWidth: 0.5, lineColor: PDF_COLORS.border }] },
+      ],
+    };
+  }
+
+  function pdfBuildHero() {
+    const heroLabel = pdfText(document.querySelector('.hero-label'));
+    const h1 = pdfText(document.querySelector('.hero h1'));
+    const sub = pdfInline(document.querySelector('.hero-sub'));
+    const metaCols = [...document.querySelectorAll('.hero-meta > div')].map((d) => ({
+      stack: [
+        { text: pdfText(d.querySelector('.label')).toUpperCase(), fontSize: 6.5, color: PDF_COLORS.dim, characterSpacing: 0.8, margin: [0, 0, 0, 2] },
+        { text: pdfText(d.querySelector('.val')), fontSize: 8.5, color: PDF_COLORS.text },
+      ],
+    }));
+    return [
+      { text: heroLabel.toUpperCase(), fontSize: 7, color: PDF_COLORS.accent, characterSpacing: 0.8, margin: [0, 0, 0, 6] },
+      { text: h1, fontSize: 28, bold: true, color: PDF_COLORS.text, margin: [0, 0, 0, 6] },
+      { text: sub, fontSize: 10, color: PDF_COLORS.muted, margin: [0, 0, 0, 10] },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: PDF_CONTENT_WIDTH, y2: 0, lineWidth: 0.5, lineColor: PDF_COLORS.border }] },
+      { columns: metaCols, columnGap: 18, margin: [0, 8, 0, 0] },
+    ];
+  }
+
+  function pdfBuildAbout() {
+    const items = [...document.querySelectorAll('#about .bullets > li')].map((li) => ({
+      text: pdfInline(li),
+      margin: [0, 0, 0, 2],
+    }));
+    return [{ ul: items, fontSize: 9.5, color: PDF_COLORS.muted }];
+  }
+
+  function pdfBuildExpertise() {
+    const cats = [...document.querySelectorAll('.expertise-cats .cat')].map((cat) => ({
+      stack: [
+        { text: pdfText(cat.querySelector('h3')), bold: true, fontSize: 10, color: PDF_COLORS.text, margin: [0, 0, 0, 3] },
+        { text: [...cat.querySelectorAll('li')].map((li) => pdfText(li)).join('  \u00b7  '), fontSize: 7.5, color: PDF_COLORS.muted },
+      ],
+      margin: [0, 0, 0, 8],
+    }));
+    const rows = [];
+    for (let i = 0; i < cats.length; i += 2) {
+      rows.push({ columns: [cats[i], cats[i + 1] || { text: '' }], columnGap: 14 });
+    }
+    return rows;
+  }
+
+  function pdfBuildEmployerCard(empCard) {
+    const empPeriod = pdfText(empCard.querySelector('.emp-period'));
+    const empName = pdfText(empCard.querySelector('h3'));
+    const empPlace = pdfText(empCard.querySelector('.emp-place'));
+    const roles = [...empCard.querySelectorAll('.roles > li')].map((li) => ({
+      title: pdfText(li.querySelector('strong')),
+      period: pdfText(li.querySelector('.role-period')),
+    }));
+    return {
+      unbreakable: true,
+      margin: [0, 0, 0, 8],
+      table: {
+        widths: ['*'],
+        body: [[{
+          fillColor: PDF_COLORS.card,
+          stack: [
+            {
+              columns: [
+                { text: empName, bold: true, fontSize: 12, color: PDF_COLORS.text },
+                { text: empPeriod.toUpperCase(), fontSize: 7, color: PDF_COLORS.dim, alignment: 'right', characterSpacing: 0.5, margin: [0, 3, 0, 0] },
+              ],
+            },
+            { text: empPlace, fontSize: 8, color: PDF_COLORS.dim, margin: [0, 1, 0, 5] },
+            {
+              ul: roles.map((r) => ({
+                text: [
+                  { text: r.title, color: PDF_COLORS.text },
+                  { text: '    ' + r.period.toUpperCase(), fontSize: 6.5, color: PDF_COLORS.dim, characterSpacing: 0.4 },
+                ],
+                fontSize: 8.5,
+                margin: [0, 0, 0, 1],
+              })),
+            },
+          ],
+        }]],
+      },
+      layout: {
+        defaultBorder: false,
+        hLineWidth: () => 0,
+        vLineWidth: (i) => (i === 0 ? 2 : 0),
+        vLineColor: () => PDF_COLORS.accent,
+        paddingLeft:   () => 10,
+        paddingRight:  () => 10,
+        paddingTop:    () => 7,
+        paddingBottom: () => 7,
+      },
+    };
+  }
+
+  function pdfBuildCliEntry(entry) {
+    return {
+      unbreakable: true,
+      margin: [10, 0, 0, 9],
+      stack: [
+        { text: pdfText(entry.querySelector('.period')).toUpperCase(), fontSize: 6.5, color: PDF_COLORS.accent, characterSpacing: 0.6, margin: [0, 0, 0, 1] },
+        { text: pdfInline(entry.querySelector('h4')), fontSize: 10.5, bold: true, color: PDF_COLORS.text, margin: [0, 0, 0, 1] },
+        { text: pdfText(entry.querySelector('.place')), fontSize: 7.5, color: PDF_COLORS.dim, italics: true, margin: [0, 0, 0, 3] },
+        {
+          ul: [...entry.querySelectorAll('.bullets > li')].map((li) => ({
+            text: pdfInline(li),
+            fontSize: 8.5,
+            color: PDF_COLORS.muted,
+            margin: [0, 0, 0, 1],
+          })),
+        },
+      ],
+    };
+  }
+
+  function pdfBuildExperience() {
+    const out = [];
+    document.querySelectorAll('#experience .era').forEach((era) => {
+      out.push(pdfBuildEmployerCard(era.querySelector('.emp-card')));
+      era.querySelectorAll('.cli-track .cli-entry').forEach((entry) => {
+        out.push(pdfBuildCliEntry(entry));
+      });
+      out.push({ text: '', margin: [0, 0, 0, 3] });
+    });
+    return out;
+  }
+
+  function pdfBuildCredentials() {
+    const certs = [...document.querySelectorAll('#certs .cert')].map((c) => ({
+      text: [
+        { text: '\u2022  ', color: PDF_COLORS.accent },
+        { text: pdfText(c.querySelector('.title')), color: PDF_COLORS.text },
+      ],
+      fontSize: 9,
+      margin: [0, 0, 0, 4],
+    }));
+    const rows = [];
+    for (let i = 0; i < certs.length; i += 2) {
+      rows.push({ columns: [certs[i], certs[i + 1] || { text: '' }], columnGap: 14 });
+    }
+    return rows;
+  }
+
+  function pdfBuildDefinition() {
+    const content = [];
+    content.push(...pdfBuildHero());
+    content.push(pdfSectionHeader('01', 'ABOUT', 'about'));
+    content.push(...pdfBuildAbout());
+    content.push(pdfSectionHeader('02', 'EXPERTISE', 'expertise'));
+    content.push(...pdfBuildExpertise());
+    content.push(pdfSectionHeader('03', 'EXPERIENCE', 'experience'));
+    content.push(...pdfBuildExperience());
+    content.push(pdfSectionHeader('04', 'CREDENTIALS', 'certs'));
+    content.push(...pdfBuildCredentials());
+
+    return {
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 44],
+      info: {
+        title: 'Jothipazhani Nagarajan — CV',
+        author: 'Jothipazhani Nagarajan',
+        subject: 'Curriculum Vitae',
+      },
+      content,
+      defaultStyle: { fontSize: 9.5, lineHeight: 1.35, color: PDF_COLORS.text },
+      footer: (currentPage, pageCount) => ({
+        columns: [
+          { text: 'jnrajan.uk \u00b7 London, United Kingdom', fontSize: 7, color: PDF_COLORS.dim, alignment: 'left', characterSpacing: 0.5, margin: [40, 14, 0, 0] },
+          { text: currentPage + ' / ' + pageCount, fontSize: 7, color: PDF_COLORS.dim, alignment: 'right', characterSpacing: 0.5, margin: [0, 14, 40, 0] },
+        ],
+      }),
+    };
+  }
+
+  // Exposed for programmatic access and automated validation.
+  window.cvPdf = { buildDefinition: pdfBuildDefinition };
+
+  // Download button click handler.
   const dlBtn = document.getElementById('download-cv');
   if (dlBtn) {
     dlBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      // Force any scroll-triggered reveals into their visible state before print
-      document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
-      // Set the document title so "Save as PDF" suggests a sensible filename
-      const originalTitle = document.title;
-      document.title = 'Jothipazhani_Nagarajan_CV';
-      const restore = () => {
-        document.title = originalTitle;
-        window.removeEventListener('afterprint', restore);
-      };
-      window.addEventListener('afterprint', restore);
-      window.print();
+      if (typeof pdfMake === 'undefined') {
+        alert('PDF library failed to load — please check your connection and try again.');
+        return;
+      }
+      // Reveal hidden-on-scroll elements so DOM text is complete.
+      document.querySelectorAll('.reveal').forEach((el) => el.classList.add('visible'));
+      try {
+        pdfMake.createPdf(pdfBuildDefinition()).download('Jothipazhani_Nagarajan_CV.pdf');
+      } catch (err) {
+        console.error('PDF generation failed:', err);
+        alert('Sorry — PDF generation failed. Please try again.');
+      }
     });
   }
 
