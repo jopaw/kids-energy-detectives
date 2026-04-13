@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jothipazhani Nagarajan — Manager Technology, Digital Finance</title>
+<meta name="description" content="Jothipazhani Nagarajan — 21+ years engineering leader specialising in Digital Finance, Blockchain, API Management, Microservices and GenAI. Based in London." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-2: #fafaf7;
+    --surface: #f5f4ef;
+    --border: #d8d6ce;
+    --text: #0a0a0a;
+    --muted: #3d3c38;
+    --dim: #6b6a64;
+    --accent: #8a5f28;
+    --accent-soft: #8a5f2818;
+    --accent-dim: #5e3f16;
+    --max: 1180px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(184, 130, 61, 0.06), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 100% 50%, rgba(184, 130, 61, 0.03), transparent 70%);
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.25;
+    z-index: 100;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  .container {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding: 1.5rem 2rem;
+    backdrop-filter: blur(12px);
+    background: rgba(10, 10, 10, 0.88);
+    border-bottom: 1px solid #2a2a2a;
+  }
+  nav.scrolled { background: rgba(10, 10, 10, 0.95); }
+  nav .inner {
+    max-width: var(--max);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  nav .logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    color: #ece9e2;
+  }
+  nav .logo span { color: var(--accent); }
+  nav ul {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  nav ul a {
+    color: #8a867c;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: #ece9e2; }
+  @media (max-width: 720px) { nav ul { display: none; } }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 8rem 0 5rem;
+    position: relative;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: end;
+  }
+  .hero-label {
+    color: var(--accent);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.1s forwards;
+  }
+  .hero-label::before {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-size: clamp(3rem, 9vw, 7.5rem);
+    line-height: 0.95;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.9s 0.25s forwards;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+  }
+  .hero-sub {
+    max-width: 640px;
+    color: var(--muted);
+    font-size: 1.2rem;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.9s 0.45s forwards;
+  }
+  .hero-sub strong {
+    color: var(--text);
+    font-weight: 400;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.9s 0.65s forwards;
+  }
+  .hero-meta div { display: flex; flex-direction: column; gap: 0.4rem; }
+  .hero-meta .label { color: var(--dim); }
+  .hero-meta .val { color: var(--text); font-size: 0.95rem; }
+  .hero-meta .val a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); transition: border-color 0.2s; }
+  .hero-meta .val a:hover { border-color: var(--accent); }
+
+  /* Vertical side marker */
+  .side-mark {
+    position: fixed;
+    left: 2rem;
+    bottom: 2rem;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    color: var(--dim);
+    z-index: 40;
+  }
+  @media (max-width: 900px) { .side-mark { display: none; } }
+
+  /* SECTION */
+  section {
+    padding: 7rem 0;
+    position: relative;
+  }
+  .section-head {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+    margin-bottom: 4rem;
+    align-items: baseline;
+  }
+  .section-head .num { color: var(--accent); }
+  .section-head h2 {
+    font-size: clamp(2rem, 4.5vw, 3.5rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .section-head h2 em { font-style: italic; color: var(--accent); }
+  @media (max-width: 720px) {
+    .section-head { grid-template-columns: 1fr; gap: 1rem; }
+  }
+
+  /* ABOUT */
+  .about-body {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+  }
+  .about-body .spacer {}
+  .about-text p {
+    font-size: 1.25rem;
+    line-height: 1.7;
+    color: var(--text);
+    max-width: 680px;
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+  }
+  .about-text p.muted { color: var(--muted); }
+  .about-text strong { color: var(--accent); font-weight: 400; font-style: italic; }
+  @media (max-width: 720px) {
+    .about-body { grid-template-columns: 1fr; gap: 1rem; }
+    .about-text p { font-size: 1.1rem; }
+  }
+
+  /* EXPERTISE */
+  .expertise-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+  }
+  .expertise-cats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+  }
+  .cat {
+    padding: 2rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    position: relative;
+    transition: all 0.3s;
+  }
+  .cat:hover {
+    border-color: var(--accent-dim);
+    transform: translateY(-3px);
+  }
+  .cat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .cat h3 {
+    font-weight: 400;
+    font-size: 1.15rem;
+    margin-bottom: 1.2rem;
+    margin-top: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .cat ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .cat li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    letter-spacing: 0.02em;
+  }
+  @media (max-width: 720px) {
+    .expertise-grid { grid-template-columns: 1fr; gap: 1rem; }
+  }
+
+  /* EXPERIENCE — DUAL TRACK */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+  }
+  .dual-headers {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2.5rem;
+    padding-bottom: 1rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .dual-headers span {
+    color: var(--accent);
+  }
+  .era {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2.5rem;
+    margin-bottom: 4rem;
+    align-items: start;
+  }
+  .era:last-child { margin-bottom: 0; }
+  .emp-card {
+    position: relative;
+    padding: 1.6rem 1.6rem 1.6rem 1.8rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    position: sticky;
+    top: 6rem;
+  }
+  .emp-card .emp-period {
+    color: var(--dim);
+    margin-bottom: 0.8rem;
+  }
+  .emp-card h3 {
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.2rem;
+    color: var(--text);
+  }
+  .emp-card .emp-place {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.2rem;
+  }
+  .emp-card .roles {
+    list-style: none;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+  .emp-card .roles li {
+    margin-bottom: 0.9rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .emp-card .roles li:last-child { margin-bottom: 0; }
+  .emp-card .roles strong {
+    display: block;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+  }
+  .emp-card .roles .role-period {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .cli-track {
+    position: relative;
+    padding-left: 2rem;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+  .cli-entry {
+    position: relative;
+  }
+  .cli-entry::before {
+    content: '';
+    position: absolute;
+    left: -2.35rem;
+    top: 0.6rem;
+    width: 9px;
+    height: 9px;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+  .cli-entry:hover::before {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  .cli-entry .period {
+    color: var(--dim);
+    margin-bottom: 0.5rem;
+  }
+  .cli-entry h4 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
+  .cli-entry h4 em { color: var(--accent); font-style: italic; }
+  .cli-entry .place {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+  }
+  .cli-entry p {
+    color: var(--muted);
+    max-width: 640px;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+  @media (max-width: 860px) {
+    .exp-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .dual-headers { grid-template-columns: 1fr; gap: 0.5rem; }
+    .dual-headers span:last-child { display: none; }
+    .era { grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem; }
+    .emp-card { position: static; }
+    .cli-track { padding-left: 1.5rem; }
+    .cli-entry::before { left: -1.85rem; }
+    .emp-card h3 { font-size: 1.2rem; }
+    .cli-entry h4 { font-size: 1.1rem; }
+  }
+
+  /* CERTIFICATIONS */
+  .certs {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+  }
+  .cert-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  .cert {
+    padding: 1.5rem 1.8rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: border-color 0.3s;
+  }
+  .cert:hover { border-color: var(--accent-dim); }
+  .cert .mark {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 1.1rem;
+  }
+  .cert span.title {
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--text);
+  }
+  @media (max-width: 720px) {
+    .certs { grid-template-columns: 1fr; gap: 1rem; }
+  }
+
+  /* CONTACT */
+  .contact-wrap {
+    padding: 6rem 0 8rem;
+    text-align: center;
+  }
+  .contact-wrap .mono { color: var(--accent); }
+  .contact-wrap h2 {
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin: 2rem 0 3rem;
+  }
+  .contact-wrap h2 em { font-style: italic; color: var(--accent); }
+  .contact-email {
+    display: inline-block;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+    transition: border-color 0.3s, color 0.3s;
+  }
+  .contact-email:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .contact-links {
+    margin-top: 3rem;
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .contact-links a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .contact-links a:hover { color: var(--accent); }
+
+  /* FOOTER */
+  footer {
+    padding: 2.5rem 0;
+    background: #0a0a0a;
+    border-top: 1px solid #2a2a2a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #6b6a64;
+  }
+  footer .mono { color: #6b6a64; }
+  footer .container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Reveal on scroll */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <div class="logo">JN<span>.</span></div>
+    <ul>
+      <li><a href="#about" class="mono">About</a></li>
+      <li><a href="#expertise" class="mono">Expertise</a></li>
+      <li><a href="#experience" class="mono">Experience</a></li>
+      <li><a href="#contact" class="mono">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="side-mark mono">jnrajan.uk — london, uk</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-label mono">Engineering Leader · Digital Finance &amp; Platform</div>
+        <h1>
+          Jothipazhani<br>
+          <em>Nagarajan</em>
+        </h1>
+        <p class="hero-sub">
+          Senior engineering leader with <strong>21+ years</strong> scaling
+          platforms, teams and delivery for global banks. I build
+          <strong>digital finance</strong> capability at the intersection of
+          blockchain, API strategy, cloud and applied AI — translating
+          regulatory and business ambition into shipped product.
+        </p>
+        <div class="hero-meta">
+          <div>
+            <span class="label mono">Based</span>
+            <span class="val">London, United Kingdom</span>
+          </div>
+          <div>
+            <span class="label mono">Currently</span>
+            <span class="val">Lloyds Banking Group · via Publicis Sapient</span>
+          </div>
+          <div>
+            <span class="label mono">Get in touch</span>
+            <span class="val"><a href="mailto:hello@jnrajan.uk">hello@jnrajan.uk</a></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="mono num">01 / About</span>
+      <h2>Leading engineering where <em>regulation</em>,<br><em>capital</em> and <em>technology</em> meet.</h2>
+    </div>
+    <div class="about-body reveal">
+      <div class="spacer"></div>
+      <div class="about-text">
+        <p>
+          I lead engineering organisations that deliver <strong>digital finance platforms</strong>
+          at the bar set by Tier-1 banks: regulated, resilient and fast to evolve.
+          My remit spans technology strategy, architecture, delivery and the
+          people systems that sustain them.
+        </p>
+        <p class="muted">
+          Today I lead the DevOps team for Lloyds Banking Group's Digital
+          Finance programme — the bank's move into tokenised assets on the
+          Canton Network with Archax and Fireblocks on GCP — while also
+          partnering with engineering squads on microservices architecture
+          and Java Quarkus delivery. Earlier I owned the federated API
+          Management programme across IBM API Connect, Azure APIM and
+          Apigee X, and led delivery of the UK Open Banking Regulatory
+          Sandbox end-to-end: security architecture, supplier engagement
+          and the cross-functional squads that shipped it.
+        </p>
+        <p class="muted">
+          Across two decades at Publicis Sapient, HCL and Kumaran Systems I've
+          built and mentored teams across London, Houston, Raleigh and
+          Bangalore, hired engineers into senior roles, and partnered with
+          trading desks, risk, finance and business unit leadership to turn
+          ambiguous problems into funded roadmaps. I still read code, write
+          architecture, and ship — but my day job is making other engineers
+          great. Google Cloud certified Generative AI Leader; MBA in
+          International Business; Sun Certified Java Professional.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERTISE -->
+<section id="expertise">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="mono num">02 / Expertise</span>
+      <h2>Where I <em>operate</em>.</h2>
+    </div>
+    <div class="expertise-grid reveal">
+      <div class="spacer"></div>
+      <div class="expertise-cats">
+        <div class="cat">
+          <h3>Digital Finance &amp; Blockchain</h3>
+          <ul>
+            <li>Tokenisation Strategy</li>
+            <li>Canton Network</li>
+            <li>Archax · Fireblocks</li>
+            <li>Open Banking</li>
+            <li>OIDC / OAuth 2.0</li>
+            <li>Regulatory Delivery</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <h3>Platform &amp; API Strategy</h3>
+          <ul>
+            <li>API Federation</li>
+            <li>IBM API Connect</li>
+            <li>Azure APIM</li>
+            <li>Apigee X</li>
+            <li>Microservices</li>
+            <li>Developer Experience</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <h3>Cloud, DevOps &amp; Resilience</h3>
+          <ul>
+            <li>GCP · Azure</li>
+            <li>Terraform Cloud</li>
+            <li>GitHub Actions</li>
+            <li>CI / CD at Scale</li>
+            <li>SRE Practices</li>
+            <li>Cost &amp; Governance</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <h3>Leadership &amp; Applied AI</h3>
+          <ul>
+            <li>Org Design</li>
+            <li>Hiring &amp; Mentoring</li>
+            <li>Stakeholder Mgmt</li>
+            <li>Multi-Agent AI</li>
+            <li>GenAI Strategy</li>
+            <li>Engineering Excellence</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="mono num">03 / Experience</span>
+      <h2>Two decades of <em>delivery</em> at scale.</h2>
+    </div>
+    <div class="exp-grid reveal">
+      <div class="spacer"></div>
+      <div>
+        <div class="dual-headers">
+          <span class="mono">Employer</span>
+          <span class="mono">Client Engagement</span>
+        </div>
+
+        <!-- ERA 1: PUBLICIS SAPIENT (2010–Present) -->
+        <div class="era">
+          <aside class="emp-card">
+            <div class="emp-period mono">May 2010 — Present · 16 yrs</div>
+            <h3>Publicis Sapient</h3>
+            <div class="emp-place">London, United Kingdom</div>
+            <ul class="roles">
+              <li>
+                <strong>Manager, Technology</strong>
+                <span class="role-period">Oct 2021 — Present</span>
+              </li>
+              <li>
+                <strong>Senior Associate, Platform Core Java — L2</strong>
+                <span class="role-period">Oct 2012 — Oct 2021</span>
+              </li>
+              <li>
+                <strong>Senior Associate, Platform Core Java — L1</strong>
+                <span class="role-period">May 2010 — Sep 2012</span>
+              </li>
+            </ul>
+          </aside>
+          <div class="cli-track">
+
+            <div class="cli-entry">
+              <div class="period mono">Feb 2026 — Present</div>
+              <h4>Lloyds Banking Group <em>· DevOps Lead, Digital Finance</em></h4>
+              <div class="place">London, United Kingdom</div>
+              <p>Leading the DevOps team for Lloyds' Digital Finance programme —
+              the bank's move into tokenised assets on the Canton Network with
+              Archax and Fireblocks on GCP. Partner with engineering squads on
+              microservices architecture and Java Quarkus delivery, setting
+              standards for build, release and operational readiness.</p>
+            </div>
+
+            <div class="cli-entry">
+              <div class="period mono">Sep 2018 — Jan 2026</div>
+              <h4>Lloyds Banking Group <em>· API Federation &amp; Open Banking</em></h4>
+              <div class="place">London, United Kingdom</div>
+              <p>Led the federation of API Management across IBM API Connect,
+              Azure APIM and Apigee X — a strategic programme unifying developer
+              experience and governance across the bank. Owned end-to-end
+              delivery of the UK Open Banking Regulatory Sandbox on ForgeRock
+              Model Bank: security architecture (OIDC, OAuth 2.0, MA-TLS,
+              non-repudiation), ETL tooling, and an in-house BDD test framework
+              adopted across squads. Later introduced multi-agent AI workflows
+              automating the full API lifecycle from design to delivery.</p>
+            </div>
+
+            <div class="cli-entry">
+              <div class="period mono">May 2015 — Jun 2018</div>
+              <h4>Fidelity Investments <em>· Platform Centre of Excellence</em></h4>
+              <div class="place">Bangalore, India</div>
+              <p>Drove enterprise adoption of lightweight container-based
+              microservices across Fidelity's Personal Investing group, and
+              delivered the Account Opening platform. Mentored engineers
+              into senior technical roles and partnered with product
+              leadership to shape platform strategy.</p>
+            </div>
+
+            <div class="cli-entry">
+              <div class="period mono">Mar 2014 — Feb 2015</div>
+              <h4>Fidelity Investments <em>· Fund Compliance Engineering (COMET)</em></h4>
+              <div class="place">Raleigh-Durham, North Carolina</div>
+              <p>Delivered the Fund Compliance Monitoring Engineering
+              platform, working directly with compliance and business
+              stakeholders on requirements and rollout.</p>
+            </div>
+
+            <div class="cli-entry">
+              <div class="period mono">Jun 2010 — Mar 2014</div>
+              <h4>Citigroup <em>· Commodities Fundamental Data &amp; Analytics</em></h4>
+              <div class="place">Houston · London · Bangalore</div>
+              <p>Owned the Commodities Fundamental Data &amp; Analytics
+              platform across three geographies. Translated requirements
+              from trading desks, risk and finance into delivery for
+              offshore teams; managed stakeholder expectations at
+              business-unit level; guided the technical roadmap for
+              multi-modal data ingestion, parsing and quality.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ERA 2: HCL TECHNOLOGIES -->
+        <div class="era">
+          <aside class="emp-card">
+            <div class="emp-period mono">Jun 2006 — May 2010 · 4 yrs</div>
+            <h3>HCL Technologies</h3>
+            <div class="emp-place">India</div>
+            <ul class="roles">
+              <li>
+                <strong>Technical Lead</strong>
+                <span class="role-period">Jul 2008 — May 2010</span>
+              </li>
+              <li>
+                <strong>Lead Engineer</strong>
+                <span class="role-period">Jun 2007 — Jun 2008</span>
+              </li>
+              <li>
+                <strong>Member Technical Staff</strong>
+                <span class="role-period">Jun 2006 — May 2007</span>
+              </li>
+            </ul>
+          </aside>
+          <div class="cli-track">
+            <div class="cli-entry">
+              <div class="period mono">Jun 2006 — May 2010</div>
+              <h4>Telecom OEM <em>· Element Management System</em></h4>
+              <div class="place">India</div>
+              <p>Technical ownership of an EMS platform — architecture,
+              effort estimation, performance engineering, memory profiling,
+              query optimisation and mentoring. Contributed to new business
+              pursuits and absorbed emerging technologies into delivery
+              practice. Earlier, worked on the SavaJe Mobile OS TCK
+              compliance and JUnit coverage.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ERA 3: KUMARAN SYSTEMS -->
+        <div class="era">
+          <aside class="emp-card">
+            <div class="emp-period mono">May 2004 — May 2006 · 2 yrs</div>
+            <h3>Kumaran Systems</h3>
+            <div class="emp-place">India</div>
+            <ul class="roles">
+              <li>
+                <strong>Programmer</strong>
+                <span class="role-period">May 2004 — May 2006</span>
+              </li>
+            </ul>
+          </aside>
+          <div class="cli-track">
+            <div class="cli-entry">
+              <div class="period mono">May 2004 — May 2006</div>
+              <h4>Nortel Networks <em>· Trouble Ticket System</em></h4>
+              <div class="place">Canada (delivered from India)</div>
+              <p>Migrated a Nortel Networks Trouble Ticket System from
+              Oracle Forms to Java Swing / J2EE, including a custom Java
+              graphics engine to replicate Oracle Forms chart rendering.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section id="certs">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="mono num">04 / Credentials</span>
+      <h2>Certifications &amp; <em>education</em>.</h2>
+    </div>
+    <div class="certs reveal">
+      <div class="spacer"></div>
+      <div class="cert-list">
+        <div class="cert">
+          <span class="mark">◆</span>
+          <span class="title">Google Cloud Certified — Generative AI Leader</span>
+        </div>
+        <div class="cert">
+          <span class="mark">◆</span>
+          <span class="title">Sun Certified Java Professional (Java 5)</span>
+        </div>
+        <div class="cert">
+          <span class="mark">◆</span>
+          <span class="title">MBA, International Business — Pondicherry University</span>
+        </div>
+        <div class="cert">
+          <span class="mark">◆</span>
+          <span class="title">B.Tech, Computer Science &amp; Engineering</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="contact-wrap reveal">
+      <span class="mono">05 / Get in touch</span>
+      <h2>Always open to a<br><em>good conversation.</em></h2>
+      <a class="contact-email" href="mailto:hello@jnrajan.uk">hello@jnrajan.uk</a>
+      <div class="contact-links">
+        <a href="https://www.linkedin.com/in/jothipazhanin" target="_blank" rel="noopener" class="mono">LinkedIn ↗</a>
+        <a href="tel:+447711999789" class="mono">+44 7711 999789</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span class="mono">© 2026 · jnrajan.uk</span>
+    <span class="mono">London · United Kingdom</span>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll state
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Reveal on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
