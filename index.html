@@ -793,7 +793,7 @@
           </div>
           <div>
             <span class="label mono">Get in touch</span>
-            <span class="val"><a href="mailto:hello@jnrajan.uk">hello@jnrajan.uk</a></span>
+            <span class="val"><a href="#" data-contact="1">contact</a></span>
           </div>
         </div>
       </div>
@@ -1090,7 +1090,7 @@
     <div class="contact-wrap reveal">
       <span class="mono">05 / Get in touch</span>
       <h2>Always open to a<br><em>good conversation.</em></h2>
-      <a class="contact-email" href="mailto:hello@jnrajan.uk">hello@jnrajan.uk</a>
+      <a class="contact-email" href="#" data-contact="1">contact</a>
       <div class="contact-links">
         <a href="https://www.linkedin.com/in/jothipazhanin" target="_blank" rel="noopener" class="mono">LinkedIn ↗</a>
         <a href="tel:+447711999789" class="mono">+44 7711 999789</a>
@@ -1141,27 +1141,369 @@
 
       // Build a clean clone of <main content> without nav / footer / side mark
       const clone = document.createElement('div');
-      clone.style.cssText = 'background:#ffffff;padding:28px 32px;width:794px;color:#0a0a0a;font-family:Fraunces,Georgia,serif;';
+      clone.classList.add('pdf-wrap');
+      clone.style.cssText = 'background:#ffffff;padding:24px 28px;width:720px;box-sizing:border-box;color:#0a0a0a;font-family:Fraunces,Georgia,serif;font-size:13px;line-height:1.5;overflow:hidden;';
       document.querySelectorAll('section').forEach(sec => {
+        // Skip the contact section — its CTA doesn't belong in a CV
+        if (sec.id === 'contact') return;
         clone.appendChild(sec.cloneNode(true));
       });
 
-      // Strip dark-mode chrome and sticky positioning from the clone
+      // Comprehensive PDF stylesheet — overrides all screen styles that break print layout
       const style = document.createElement('style');
       style.textContent = `
-        .pdf-wrap section { padding: 18px 0 !important; }
-        .pdf-wrap .hero { min-height: auto !important; padding: 8px 0 20px !important; }
-        .pdf-wrap .emp-card { position: static !important; }
-        .pdf-wrap .reveal { opacity: 1 !important; transform: none !important; }
-        .pdf-wrap .era, .pdf-wrap .cat, .pdf-wrap .cert, .pdf-wrap .cli-entry { page-break-inside: avoid; break-inside: avoid; }
-        .pdf-wrap section { page-break-inside: avoid; }
+        .pdf-wrap, .pdf-wrap * {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+          box-shadow: none !important;
+          box-sizing: border-box !important;
+        }
+        .pdf-wrap { max-width: none !important; }
+        .pdf-wrap section {
+          padding: 14px 0 !important;
+          min-height: auto !important;
+          page-break-inside: auto;
+        }
+        .pdf-wrap .container { padding: 0 !important; max-width: 100% !important; }
+
+        /* HERO */
+        .pdf-wrap .hero {
+          display: block !important;
+          min-height: 0 !important;
+          height: auto !important;
+          padding: 0 0 14px 0 !important;
+          border-bottom: 1px solid #d8d6ce;
+          margin-bottom: 10px;
+          align-items: flex-start !important;
+        }
+        .pdf-wrap .hero-grid {
+          display: block !important;
+          align-items: flex-start !important;
+        }
+        .pdf-wrap .hero-grid > div { display: block !important; }
+        .pdf-wrap .hero-label {
+          margin-bottom: 12px !important;
+          color: #8a5f28;
+          font-size: 9px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          font-family: 'JetBrains Mono', monospace;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .pdf-wrap .hero-label::before {
+          content: '';
+          width: 30px;
+          height: 1px;
+          background: #8a5f28;
+        }
+        .pdf-wrap .hero h1 {
+          font-size: 38px !important;
+          line-height: 1 !important;
+          margin-bottom: 12px !important;
+          font-weight: 400;
+          letter-spacing: -0.02em;
+          color: #0a0a0a;
+        }
+        .pdf-wrap .hero h1 br { display: none; }
+        .pdf-wrap .hero h1 em {
+          color: #8a5f28;
+          font-style: italic;
+          font-weight: 400;
+        }
+        .pdf-wrap .hero-sub {
+          font-size: 12px !important;
+          max-width: 100% !important;
+          margin-bottom: 14px !important;
+          color: #3d3c38;
+          line-height: 1.55;
+          font-weight: 400;
+        }
+        .pdf-wrap .hero-sub strong { color: #0a0a0a; font-weight: 500; }
+        .pdf-wrap .hero-meta {
+          display: flex !important;
+          flex-wrap: wrap;
+          gap: 20px !important;
+          padding-top: 10px !important;
+          border-top: 1px solid #d8d6ce !important;
+          margin: 0;
+        }
+        .pdf-wrap .hero-meta > div { display: flex; flex-direction: column; gap: 2px; }
+        .pdf-wrap .hero-meta .label {
+          color: #6b6a64 !important;
+          font-size: 8px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .pdf-wrap .hero-meta .val,
+        .pdf-wrap .hero-meta .val a {
+          color: #0a0a0a !important;
+          font-size: 11px !important;
+          text-decoration: none !important;
+          border: none !important;
+        }
+
+        /* SECTION HEADS */
+        .pdf-wrap .section-head {
+          display: block !important;
+          margin-bottom: 10px !important;
+          padding-bottom: 6px;
+          border-bottom: 1px solid #d8d6ce;
+          grid-template-columns: none !important;
+        }
+        .pdf-wrap .section-head .num {
+          display: block;
+          margin-bottom: 4px;
+          color: #8a5f28 !important;
+          font-size: 9px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .pdf-wrap .section-head h2 {
+          font-size: 20px !important;
+          font-weight: 400;
+          line-height: 1.15;
+          margin: 0;
+          letter-spacing: -0.01em;
+          color: #0a0a0a;
+        }
+        .pdf-wrap .section-head h2 br { display: none; }
+        .pdf-wrap .section-head h2 em { color: #8a5f28 !important; font-style: italic; }
+
+        /* ABOUT BULLETS */
+        .pdf-wrap .about-body,
+        .pdf-wrap .expertise-grid,
+        .pdf-wrap .exp-grid,
+        .pdf-wrap .certs {
+          display: block !important;
+          grid-template-columns: none !important;
+        }
+        .pdf-wrap .about-body .spacer,
+        .pdf-wrap .expertise-grid .spacer,
+        .pdf-wrap .exp-grid .spacer,
+        .pdf-wrap .certs .spacer { display: none !important; }
+        .pdf-wrap .bullets {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .pdf-wrap .bullets li {
+          font-size: 11.5px !important;
+          margin-bottom: 5px !important;
+          line-height: 1.5 !important;
+          color: #3d3c38 !important;
+          max-width: 100% !important;
+          padding-left: 0 !important;
+        }
+        .pdf-wrap .bullets li::before { display: none !important; }
+        .pdf-wrap .bullets li strong { color: #0a0a0a !important; font-weight: 500; }
+        .pdf-wrap .bullets.tight li {
+          font-size: 10.5px !important;
+          margin-bottom: 3px !important;
+          line-height: 1.4 !important;
+        }
+
+        /* EXPERTISE CARDS */
+        .pdf-wrap .expertise-cats {
+          display: grid !important;
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 8px !important;
+        }
+        .pdf-wrap .cat {
+          padding: 10px 12px !important;
+          background: #fafaf7 !important;
+          border: 1px solid #d8d6ce !important;
+          position: relative;
+          page-break-inside: avoid;
+        }
+        .pdf-wrap .cat::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0;
+          width: 24px; height: 1px;
+          background: #8a5f28 !important;
+        }
+        .pdf-wrap .cat h3 {
+          font-size: 12px !important;
+          font-weight: 500;
+          margin: 4px 0 6px 0 !important;
+          color: #0a0a0a;
+        }
+        .pdf-wrap .cat ul {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .pdf-wrap .cat li {
+          font-size: 8.5px !important;
+          padding: 2px 5px !important;
+          border: 1px solid #d8d6ce !important;
+          color: #3d3c38 !important;
+          font-family: 'JetBrains Mono', monospace;
+          letter-spacing: 0.02em;
+          border-radius: 2px;
+        }
+
+        /* EXPERIENCE — STACKED FOR PDF (employer header above clients) */
+        .pdf-wrap .dual-headers { display: none !important; }
+        .pdf-wrap .era {
+          display: block !important;
+          grid-template-columns: none !important;
+          gap: 0 !important;
+          margin-bottom: 14px !important;
+          page-break-inside: auto;
+        }
+        .pdf-wrap .emp-card {
+          position: static !important;
+          padding: 8px 12px !important;
+          background: #fafaf7 !important;
+          border: 1px solid #d8d6ce !important;
+          border-left: 3px solid #8a5f28 !important;
+          margin-bottom: 8px;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          gap: 10px;
+          page-break-inside: avoid;
+          page-break-after: avoid;
+        }
+        .pdf-wrap .emp-card .emp-period {
+          font-size: 8.5px !important;
+          color: #6b6a64 !important;
+          margin-bottom: 0 !important;
+          font-family: 'JetBrains Mono', monospace;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          order: 3;
+          margin-left: auto;
+        }
+        .pdf-wrap .emp-card h3 {
+          font-size: 14px !important;
+          font-weight: 500;
+          margin-bottom: 0 !important;
+          color: #0a0a0a;
+          order: 1;
+        }
+        .pdf-wrap .emp-card .emp-place {
+          font-size: 10px !important;
+          color: #6b6a64 !important;
+          margin-bottom: 0 !important;
+          order: 2;
+        }
+        .pdf-wrap .emp-card .roles {
+          padding-top: 6px !important;
+          margin-top: 4px !important;
+          border-top: 1px solid #d8d6ce !important;
+          list-style: none;
+          padding-left: 0;
+          width: 100%;
+          order: 4;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 14px;
+        }
+        .pdf-wrap .emp-card .roles li {
+          font-size: 9.5px !important;
+          margin-bottom: 0 !important;
+          line-height: 1.3 !important;
+          color: #3d3c38 !important;
+          padding-left: 0 !important;
+        }
+        .pdf-wrap .emp-card .roles li::before { display: none !important; }
+        .pdf-wrap .emp-card .roles strong {
+          color: #0a0a0a !important;
+          font-weight: 500;
+          margin-right: 6px;
+        }
+        .pdf-wrap .emp-card .roles .role-period {
+          font-size: 7px !important;
+          color: #6b6a64 !important;
+          font-family: 'JetBrains Mono', monospace;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+        }
+        .pdf-wrap .cli-track {
+          padding-left: 14px !important;
+          border-left: 1px solid #d8d6ce !important;
+          display: block !important;
+          margin-top: 0;
+        }
+        .pdf-wrap .cli-entry {
+          position: relative;
+          page-break-inside: avoid;
+          margin-bottom: 10px;
+        }
+        .pdf-wrap .cli-entry:last-child { margin-bottom: 0; }
+        .pdf-wrap .cli-entry::before {
+          content: '';
+          position: absolute;
+          left: -17px !important;
+          top: 5px !important;
+          width: 6px !important;
+          height: 6px !important;
+          background: #8a5f28 !important;
+          border: 1px solid #8a5f28 !important;
+          border-radius: 50%;
+        }
+        .pdf-wrap .cli-entry .period {
+          font-size: 8.5px !important;
+          color: #6b6a64 !important;
+          margin-bottom: 2px !important;
+          font-family: 'JetBrains Mono', monospace;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+        }
+        .pdf-wrap .cli-entry h4 {
+          font-size: 12.5px !important;
+          font-weight: 500;
+          color: #0a0a0a;
+          margin-bottom: 1px;
+          letter-spacing: -0.01em;
+        }
+        .pdf-wrap .cli-entry h4 em { color: #8a5f28 !important; font-style: italic; }
+        .pdf-wrap .cli-entry .place {
+          font-size: 9px !important;
+          color: #6b6a64 !important;
+          margin-bottom: 4px !important;
+        }
+
+        /* CREDENTIALS */
+        .pdf-wrap .cert-list {
+          display: grid !important;
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 6px !important;
+        }
+        .pdf-wrap .cert {
+          padding: 7px 10px !important;
+          background: #fafaf7 !important;
+          border: 1px solid #d8d6ce !important;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .pdf-wrap .cert .mark {
+          color: #8a5f28 !important;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+        }
+        .pdf-wrap .cert span.title {
+          font-size: 10px !important;
+          color: #0a0a0a !important;
+          font-weight: 400;
+        }
       `;
-      clone.classList.add('pdf-wrap');
       clone.prepend(style);
 
-      // Offscreen render container
+      // Offscreen render container — explicit width so clone can compute its natural size
       const holder = document.createElement('div');
-      holder.style.cssText = 'position:fixed;left:-10000px;top:0;';
+      holder.style.cssText = 'position:fixed;top:0;left:-10000px;width:800px;pointer-events:none;';
       holder.appendChild(clone);
       document.body.appendChild(holder);
 
@@ -1171,9 +1513,9 @@
             margin:       [10, 10, 12, 10],
             filename:     'Jothipazhani_Nagarajan_CV.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['css', 'legacy'] }
+            html2canvas:  { scale: 1.5, useCORS: true, backgroundColor: '#ffffff', logging: false, width: 720, windowWidth: 720 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+            pagebreak:    { mode: ['css', 'legacy'], avoid: ['.cli-entry', '.cat', '.cert', '.emp-card'] }
           })
           .from(clone)
           .save();
@@ -1187,6 +1529,15 @@
       }
     });
   }
+
+  // Build contact links at runtime (avoids HTML-level email detection)
+  const contactParts = ['hel' + 'lo', 'jnra' + 'jan.uk'];
+  const contactEmail = contactParts[0] + String.fromCharCode(64) + contactParts[1];
+  document.querySelectorAll('a[data-contact]').forEach(a => {
+    a.href = 'mai' + 'lto:' + contactEmail;
+    a.textContent = contactEmail;
+    a.removeAttribute('data-contact');
+  });
 </script>
 
 </body>
