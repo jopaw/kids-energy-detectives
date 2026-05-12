@@ -914,7 +914,7 @@ function WiringDiagram() {
   return (
     <div className="card">
       <h2>🔌 Build It! Wiring Diagram</h2>
-      <p>This is the real circuit. The little parts (resistors, diodes, a transistor and capacitors) are seat-belts that keep too much voltage from reaching the tiny Pi. Ask a grown-up to help, and always unplug the Pi before changing wires.</p>
+      <p>This is the real circuit. The little parts (resistors, diodes and a transistor) are seat-belts that keep too much voltage from reaching the tiny Pi. Ask a grown-up to help, and always unplug the Pi before changing wires.</p>
 
       <h3>Pi GPIO header ↔ MCP3008 connections</h3>
       <svg viewBox="0 0 760 600" style={{ width: '100%', height: 'auto', background: '#fbfaf3', borderRadius: 18 }}>
@@ -996,16 +996,6 @@ function WiringDiagram() {
             </g>
           );
         })}
-
-        {/* Decoupling cap C0 between VDD and AGND on the chip-side rails */}
-        <g>
-          <text x={MCP_X - 90} y={(VDDy + AGNDy)/2 - 6} fontSize="9" fill="#1c2541" fontWeight="bold">C0 · 100nF</text>
-          <text x={MCP_X - 90} y={(VDDy + AGNDy)/2 + 6} fontSize="8" fill="#1c2541">(decoupling)</text>
-          <line x1={MCP_X - 18} y1={(VDDy + AGNDy)/2 - 6} x2={MCP_X - 32} y2={(VDDy + AGNDy)/2 - 6} stroke="#1c2541" strokeWidth="1.5" />
-          <line x1={MCP_X - 28} y1={(VDDy + AGNDy)/2 - 12} x2={MCP_X - 28} y2={(VDDy + AGNDy)/2} stroke="#000" strokeWidth="2" />
-          <line x1={MCP_X - 36} y1={(VDDy + AGNDy)/2} x2={MCP_X - 20} y2={(VDDy + AGNDy)/2} stroke="#000" strokeWidth="2" />
-          <line x1={MCP_X - 32} y1={(VDDy + AGNDy)/2 + 6} x2={MCP_X - 32} y2={(VDDy + AGNDy)/2 + 16} stroke="#1c2541" strokeWidth="1.5" />
-        </g>
 
         {/* Pi pin squares — drawn last so they sit on top of any crossing wires */}
         <text x={PIN_X_L + PIN_W/2} y={PIN_TOP - 6} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">odd</text>
@@ -1090,13 +1080,6 @@ function WiringDiagram() {
             <line x1="110" y1="72" x2="110" y2="88" stroke="#1c2541" strokeWidth="2" />
             <text x="103" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4148</text>
             <line x1="110" y1="80" x2="146" y2="80" stroke="#e63946" strokeWidth="2" />
-            <circle cx="146" cy="80" r="2.8" fill="#1c2541" />
-            {/* C1 cap down to GND */}
-            <line x1="146" y1="80" x2="146" y2="108" stroke="#1c2541" strokeWidth="2" />
-            <line x1="134" y1="108" x2="158" y2="108" stroke="#1c2541" strokeWidth="2" />
-            <line x1="136" y1="116" x2="156" y2="116" stroke="#1c2541" strokeWidth="2" />
-            <text x="164" y="116" fontSize="9" fill="#1c2541" fontWeight="bold">C1 · 10µF</text>
-            <line x1="146" y1="116" x2="146" y2="174" stroke="#000" strokeWidth="2" />
             {/* R3 to tap */}
             <polyline points="146,80 152,72 160,88 168,72 176,88 184,72 192,80" stroke="#1c2541" strokeWidth="2" fill="none" />
             <text x="168" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R3 · 22kΩ</text>
@@ -1116,7 +1099,7 @@ function WiringDiagram() {
             <polygon points="316,174 324,174 320,182" fill="#000" />
             <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
           </svg>
-          <p className="ckt-note">D2 only lets the positive half of the motor's wobbly voltage through. C1 smooths the bumps. R3 + R4 divide it down so spikes never exceed 3.3V.</p>
+          <p className="ckt-note">D2 only lets the positive half of the motor's wobbly voltage through. R3 + R4 divide it down so spikes never exceed 3.3V. (Without a smoothing cap the reading will jump up and down a lot — that's normal, it's the bumpy motor voltage!)</p>
         </div>
 
         {/* Heat */}
@@ -1199,19 +1182,17 @@ function WiringDiagram() {
         <li><strong>Resistors (¼ W):</strong> 2× 22kΩ (R1, R3), 3× 10kΩ (R2, R4, R5), 1× 1kΩ (R6)</li>
         <li><strong>Diodes:</strong> 3× 1N4148 small-signal (D2, D3, D4), 1× 1N5817 Schottky (D1)</li>
         <li><strong>Transistor:</strong> 1× 2N3904 NPN (Q1) for the Heat amplifier</li>
-        <li><strong>Capacitors:</strong> 1× 10µF electrolytic (C1), 1× 100nF ceramic (C0 decoupling cap)</li>
       </ul>
 
-      <h3>Build it in 12 simple steps</h3>
+      <h3>Build it in 11 simple steps</h3>
       <ol className="steps">
         <li>Switch off the Pi and unplug the power cable. Safety first!</li>
         <li>Plug the MCP3008 into the middle of the breadboard so its legs straddle the gap. The notch (or dot) marks pin&nbsp;1.</li>
-        <li>Drop the 100nF decoupling cap (C0) so its legs reach MCP <strong>pin 16</strong> (VDD) and <strong>pin 14</strong> (AGND).</li>
         <li><strong>Power:</strong> <em>red</em> wire from Pi <strong>pin 1</strong> (3V3) to MCP <strong>pin 16</strong> (VDD); add a short jumper from MCP pin 16 to MCP <strong>pin 15</strong> (VREF).</li>
         <li><strong>Ground:</strong> <em>black</em> wire from Pi <strong>pin 6</strong> (GND) to MCP <strong>pin 9</strong> (DGND); short jumper from pin 9 to MCP <strong>pin 14</strong> (AGND).</li>
         <li><strong>SPI:</strong> <em>yellow</em> Pi <strong>pin 23</strong> (SCLK/GPIO11) → MCP <strong>pin 13</strong> (CLK); <em>green</em> Pi <strong>pin 21</strong> (MISO/GPIO9) → MCP <strong>pin 12</strong> (DOUT); <em>blue</em> Pi <strong>pin 19</strong> (MOSI/GPIO10) → MCP <strong>pin 11</strong> (DIN); <em>purple</em> Pi <strong>pin 24</strong> (CE0/GPIO8) → MCP <strong>pin 10</strong> (CS).</li>
         <li>Build the <strong>Sun</strong> circuit on the breadboard: panel + → R1 (22kΩ) → junction. From the junction: R2 (10kΩ) to GND, and D1 (1N5817, stripe pointing toward chip) to MCP <strong>pin 1</strong> (CH0). Panel − to GND.</li>
-        <li>Build the <strong>Wind</strong> circuit: motor + → D2 (1N4148) → junction with C1 (10µF, − stripe to GND) → R3 (22kΩ) → tap. From the tap: R4 (10kΩ) to GND, and a wire to MCP <strong>pin 2</strong> (CH1). Motor − to GND.</li>
+        <li>Build the <strong>Wind</strong> circuit: motor + → D2 (1N4148) → R3 (22kΩ) → tap. From the tap: R4 (10kΩ) to GND, and a wire to MCP <strong>pin 2</strong> (CH1). Motor − to GND.</li>
         <li>Build the <strong>Heat</strong> circuit: Peltier + → D3 (1N4148) → R5 (10kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</li>
         <li>Build the <strong>Lemon</strong> circuit: copper coin → D4 (1N4148) → MCP <strong>pin 4</strong> (CH3). Zinc nail → GND.</li>
         <li>Double-check every part letter (R1, D1, Q1…) against the diagram before powering on.</li>
@@ -1230,7 +1211,6 @@ function WiringDiagram() {
           <li>Never plug a station <em>directly</em> into a chip channel — always go through its protection circuit.</li>
           <li>Diodes have a stripe on one end (the cathode). The stripe faces toward the chip / away from the source.</li>
           <li>The 2N3904 transistor has a flat side. With the flat side facing you, the pins are <strong>E – B – C</strong>.</li>
-          <li>The electrolytic cap C1 has a "−" stripe on one side — that side goes to GND.</li>
           <li>Lemon batteries are safe to touch but don't eat the lemon afterwards.</li>
           <li>The Peltier can get warm — hold the hot side with a coin or metal spoon, not bare fingers.</li>
           <li>Always unplug the Pi before changing wires.</li>
