@@ -256,6 +256,50 @@
   .ckt-note { font-size: 0.88rem; color: var(--ink-soft); margin: 8px 0 0; }
   .parts-list li { margin-bottom: 4px; }
 
+  .connect-card {
+    background: linear-gradient(135deg, #fff3a8, #ffd166, #ffb703);
+    color: #1c2541;
+    border: 4px dashed #fff;
+  }
+  .connect-card h2 { margin-top: 0; }
+  .wifi-creds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 12px 0 6px;
+  }
+  .wifi-creds .field {
+    background: rgba(255,255,255,0.7);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+  }
+  .wifi-creds .field .lbl {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .wifi-creds .field .val {
+    font-size: 1.25rem;
+    font-weight: bold;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
+  }
+  .connect-steps {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    display: grid;
+    gap: 6px;
+  }
+  .connect-steps li {
+    background: rgba(255,255,255,0.55);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+  }
+  .connect-steps li::marker { color: #ff6b6b; }
+
   .steps { counter-reset: step; padding-left: 0; list-style: none; }
   .steps li {
     counter-increment: step;
@@ -1171,7 +1215,13 @@ function WiringDiagram() {
         <li>Build the <strong>Heat</strong> circuit: Peltier + → D3 (1N4148) → R5 (10kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</li>
         <li>Build the <strong>Lemon</strong> circuit: copper coin → D4 (1N4148) → MCP <strong>pin 4</strong> (CH3). Zinc nail → GND.</li>
         <li>Double-check every part letter (R1, D1, Q1…) against the diagram before powering on.</li>
-        <li>Plug the Pi back in and run <code>python3 pi/energy_detective.py</code>. Then open <code>http://&lt;pi-ip&gt;:8080</code> on any phone or laptop on the same Wi-Fi (find the Pi's IP with <code>hostname -I</code> on the Pi). Watch the dashboard light up!</li>
+        <li>
+          Plug the Pi back in and start the server. Two options:
+          <ul style={{ marginTop: 6 }}>
+            <li><strong>Easy — Pi makes its own Wi-Fi:</strong> run <code>sudo bash pi/setup-hotspot.sh</code> once. The Pi will broadcast a Wi-Fi network called <strong>EnergyDetectives</strong> (password <strong>lightning</strong>). Join it from any device and the dashboard pops up automatically.</li>
+            <li><strong>Already on home Wi-Fi:</strong> run <code>python3 pi/energy_detective.py</code> and open <code>http://&lt;pi-ip&gt;:8080</code> from any device on the same Wi-Fi (find the IP with <code>hostname -I</code>).</li>
+          </ul>
+        </li>
       </ol>
 
       <div className="safety">
@@ -1200,8 +1250,22 @@ const TABS = [
   { id: 'wiring',   label: '🔌 Build It' },
 ];
 
+function useWifiInfo() {
+  const [info, setInfo] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/wifi', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (!cancelled && j) setInfo(j); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  return info;
+}
+
 function App() {
   const { readings, source } = useLiveReadings();
+  const wifi = useWifiInfo();
   const [tab, setTab] = useState('overview');
   const station = STATIONS.find(s => s.id === tab);
 
@@ -1232,6 +1296,31 @@ function App() {
 
       {tab === 'overview' && (
         <>
+          {wifi && (
+            <div className="card connect-card">
+              <h2>📶 Show your friends how to join!</h2>
+              <p>This little Pi made its own Wi-Fi just for the experiment. Tell your friends to connect and the dashboard will pop up on their phone!</p>
+              <div className="wifi-creds">
+                <div className="field">
+                  <span className="lbl">Wi-Fi name</span>
+                  <span className="val">{wifi.ssid}</span>
+                </div>
+                <div className="field">
+                  <span className="lbl">Password</span>
+                  <span className="val">{wifi.password}</span>
+                </div>
+                <div className="field">
+                  <span className="lbl">Or open in a browser</span>
+                  <span className="val">http://{wifi.hostname || 'energy.local'}</span>
+                </div>
+              </div>
+              <ol className="connect-steps">
+                <li>1️⃣ On a phone, tablet or laptop, open <strong>Wi-Fi settings</strong>.</li>
+                <li>2️⃣ Pick <strong>{wifi.ssid}</strong> and type the password <strong>{wifi.password}</strong>.</li>
+                <li>3️⃣ The dashboard should pop up automatically. If it doesn't, open a browser and go to <strong>http://{wifi.hostname || 'energy.local'}</strong> (or <strong>http://{wifi.ip}</strong>).</li>
+              </ol>
+            </div>
+          )}
           <div className="card">
             <h2>Hi Energy Detective! 🕵️</h2>
             <p>
