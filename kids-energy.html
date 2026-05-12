@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Energy Detectives! — A Raspberry Pi Kids Project</title>
+<meta name="description" content="A fun, kid-friendly STEM project that turns a Raspberry Pi Zero 2 into an Energy Detective with 4 hands-on stations: Sun, Wind, Heat and Lemon power." />
+
+<link rel="preconnect" href="https://unpkg.com" crossorigin />
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+<style>
+  :root {
+    --bg-1: #fff7d6;
+    --bg-2: #ffe0f0;
+    --bg-3: #d6f0ff;
+    --ink:  #1c2541;
+    --ink-soft: #4a5779;
+    --sun:  #ffb703;
+    --wind: #56cfe1;
+    --heat: #ff6b6b;
+    --lemon:#caffbf;
+    --card-shadow: 0 12px 30px rgba(28,37,65,0.12);
+    --radius-lg: 22px;
+    --radius-md: 14px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 10% 10%, var(--bg-1) 0, transparent 40%),
+      radial-gradient(circle at 90% 20%, var(--bg-2) 0, transparent 45%),
+      radial-gradient(circle at 50% 90%, var(--bg-3) 0, transparent 50%),
+      #fffefb;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 22px 80px; }
+
+  header.hero {
+    text-align: center;
+    padding: 30px 16px 10px;
+  }
+  header.hero h1 {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    margin: 0 0 6px;
+    background: linear-gradient(90deg, #ff6b6b, #ffb703, #06d6a0, #4cc9f0, #b5179e);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 0 rgba(255,255,255,0.5);
+  }
+  header.hero p.sub {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--ink-soft);
+    max-width: 720px;
+    margin: 6px auto 0;
+  }
+  .badges { margin-top: 14px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    background: white;
+    border: 2px dashed #ffb703;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    box-shadow: var(--card-shadow);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 26px 0 18px;
+  }
+  .tab {
+    cursor: pointer;
+    background: white;
+    border: 3px solid transparent;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: bold;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--ink);
+    box-shadow: var(--card-shadow);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .tab:hover { transform: translateY(-2px); }
+  .tab.active { border-color: #ff6b6b; transform: translateY(-2px); }
+
+  /* Cards / sections */
+  .card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 22px;
+  }
+  h2 { margin: 0 0 10px; font-size: 1.6rem; }
+  h3 { margin: 12px 0 8px; }
+
+  /* Station grid */
+  .stations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+  }
+  .station {
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    color: var(--ink);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    border: 4px solid white;
+  }
+  .station.solar { background: linear-gradient(160deg, #fff3a8, #ffd166); }
+  .station.wind  { background: linear-gradient(160deg, #caf0f8, #90e0ef); }
+  .station.heat  { background: linear-gradient(160deg, #ffd6d6, #ff9aa2); }
+  .station.lemon { background: linear-gradient(160deg, #d8f3dc, #b7e4c7); }
+  .station h3 { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; margin: 0 0 8px; }
+  .station .emoji { font-size: 1.8rem; }
+  .station .what {
+    background: rgba(255,255,255,0.6);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin: 8px 0;
+    font-size: 0.95rem;
+  }
+  .reading {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: bold;
+    font-size: 1.4rem;
+    margin-top: 6px;
+  }
+  .reading .unit { font-size: 0.85rem; color: var(--ink-soft); font-weight: normal; }
+  .bar {
+    height: 10px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .bar > span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #06d6a0, #ffd166, #ff6b6b);
+    transition: width .8s ease;
+  }
+
+  /* Presentation slide */
+  .slide {
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #0b132b, #1c2541);
+    color: #f6f7fb;
+    padding: 26px;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .slide h2 { color: #ffd166; }
+  .slide .pi {
+    display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+    background: rgba(255,255,255,0.06);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin: 12px 0;
+  }
+  .slide .pi .dot {
+    width: 14px; height: 14px; border-radius: 50%; background: #06d6a0;
+    box-shadow: 0 0 14px #06d6a0;
+    animation: blink 1.4s infinite ease-in-out;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  .energy-flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .flow-cell {
+    background: rgba(255,255,255,0.08);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  .flow-cell .big { font-size: 1.4rem; font-weight: bold; margin: 4px 0; }
+  .flow-cell .lbl { opacity: .8; }
+
+  .progress-rings { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+  .ring-wrap { text-align: center; }
+  .ring-wrap .name { margin-top: 6px; font-size: 0.95rem; opacity: .9; }
+
+  /* Examples */
+  .examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .example {
+    background: rgba(255,255,255,0.75);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  }
+  .example svg { width: 100%; height: 110px; display: block; }
+  .example .cap { font-weight: bold; margin-top: 6px; font-size: 0.95rem; }
+  .example .why { font-size: 0.85rem; color: var(--ink-soft); margin-top: 2px; }
+
+  /* Wiring */
+  .wiring-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .legend-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #faf7ee;
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+  .swatch { width: 22px; height: 12px; border-radius: 4px; flex: 0 0 auto; }
+
+  .steps { counter-reset: step; padding-left: 0; list-style: none; }
+  .steps li {
+    counter-increment: step;
+    background: #faf7ee;
+    border-left: 6px solid #ffb703;
+    padding: 10px 12px 10px 44px;
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 10px; top: 8px;
+    width: 26px; height: 26px;
+    background: #ffb703; color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
+  }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  button.kid-btn {
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 999px;
+    box-shadow: 0 4px 0 #c44a4a;
+    transition: transform .1s;
+  }
+  button.kid-btn:hover { transform: translateY(-2px); }
+  button.kid-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #c44a4a; }
+  button.kid-btn.alt { background: #4cc9f0; box-shadow: 0 4px 0 #2f9bc1; }
+  button.kid-btn.warn { background: #ffb703; color: #1c2541; box-shadow: 0 4px 0 #b8830a; }
+
+  .safety {
+    background: #fff3cd;
+    border-left: 8px solid #ff6b6b;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    margin-top: 14px;
+  }
+  .safety strong { color: #c44a4a; }
+
+  footer.foot { text-align: center; margin-top: 30px; color: var(--ink-soft); }
+
+  /* Energy bolt animation */
+  @keyframes float-up { 0% { transform: translateY(10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-30px); opacity: 0; } }
+  .bolt { position: absolute; font-size: 18px; pointer-events: none; animation: float-up 2.4s infinite; }
+
+  /* Spinner */
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  .spin-slow { animation: spin 4s linear infinite; transform-origin: center; }
+  .spin-fast { animation: spin 1.2s linear infinite; transform-origin: center; }
+
+  /* Pulse */
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .pulse { animation: pulse 1.6s ease-in-out infinite; transform-origin: center; }
+
+  /* Bubble */
+  @keyframes bubble { 0% { transform: translateY(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
+  .bubble { animation: bubble 2.2s ease-in infinite; }
+
+  /* Sway */
+  @keyframes sway { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+  .sway { animation: sway 2.4s ease-in-out infinite; transform-origin: bottom center; }
+
+  /* Flicker */
+  @keyframes flicker { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+  .flicker { animation: flicker 1.4s ease-in-out infinite; }
+
+  /* Steam */
+  @keyframes steam { 0% { transform: translateY(0); opacity: 0; } 30% { opacity: 0.8; } 100% { transform: translateY(-30px); opacity: 0; } }
+  .steam { animation: steam 2.6s ease-out infinite; }
+
+  /* Slide highlight */
+  .live-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #ef476f;
+    color: white;
+    font-size: 0.75rem;
+    margin-left: 8px;
+    animation: blink 1.4s infinite ease-in-out;
+  }
+
+  @media (max-width: 640px) {
+    .energy-flow { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+/* ---------- Station data ---------- */
+const STATIONS = [
+  {
+    id: 'solar',
+    name: 'Sun Power Station',
+    emoji: '☀️',
+    cls: 'solar',
+    from: 'Light',
+    to: 'Electricity',
+    sensor: 'Solar panel + MCP3008 channel 0',
+    unit: 'V',
+    range: [0.2, 4.8],
+    color: '#ffb703',
+    blurb: 'A solar panel catches sunlight and pushes tiny electrons through wires. The Pi reads the voltage and shows how bright the day is!',
+    examples: [
+      { title: 'Solar Farm', why: 'Big fields of panels power whole towns.', anim: 'SolarFarm' },
+      { title: 'Garden Light', why: 'Charges by day, glows at night.',        anim: 'GardenLight' },
+      { title: 'Calculator',  why: 'A tiny panel runs the screen and chips.', anim: 'Calculator' },
+    ],
+  },
+  {
+    id: 'wind',
+    name: 'Wind Power Station',
+    emoji: '💨',
+    cls: 'wind',
+    from: 'Motion',
+    to: 'Electricity',
+    sensor: 'Small DC motor (generator) + MCP3008 channel 1',
+    unit: 'V',
+    range: [0.0, 3.6],
+    color: '#56cfe1',
+    blurb: 'Spinning blades turn a motor backwards — it becomes a tiny generator. Faster spinning = more electricity!',
+    examples: [
+      { title: 'Wind Turbine',  why: 'Giant blades spin a generator on a hill.', anim: 'WindTurbine' },
+      { title: 'Hydro Dam',     why: 'Falling water spins turbines under a dam.', anim: 'HydroDam' },
+      { title: 'Crank Torch',   why: 'Cranking a handle lights up the bulb.',     anim: 'CrankTorch' },
+    ],
+  },
+  {
+    id: 'heat',
+    name: 'Heat Power Station',
+    emoji: '🔥',
+    cls: 'heat',
+    from: 'Heat',
+    to: 'Electricity',
+    sensor: 'Peltier (TEC1-12706) + MCP3008 channel 2',
+    unit: 'mV',
+    range: [10, 850],
+    color: '#ff6b6b',
+    blurb: 'A Peltier tile makes electricity when one side is warm and the other is cool. Even a warm hand can power an LED!',
+    examples: [
+      { title: 'Power Plant',   why: 'Heat makes steam, steam spins turbines.', anim: 'PowerPlant' },
+      { title: 'Geothermal',    why: 'Earth heat warms water deep underground.', anim: 'Geothermal' },
+      { title: 'Body Heat Watch',why:'Tiny watches charge from your warm wrist.', anim: 'BodyHeat' },
+    ],
+  },
+  {
+    id: 'lemon',
+    name: 'Lemon Power Station',
+    emoji: '🍋',
+    cls: 'lemon',
+    from: 'Chemical',
+    to: 'Electricity',
+    sensor: 'Lemon battery (Zn + Cu) + MCP3008 channel 3',
+    unit: 'V',
+    range: [0.5, 1.1],
+    color: '#9ec96a',
+    blurb: 'Lemon juice + a zinc nail + a copper coin = a soft chemical battery. Electrons take a juicy shortcut through the wire!',
+    examples: [
+      { title: 'Phone Battery', why: 'Lithium chemistry powers your phone.',   anim: 'PhoneBattery' },
+      { title: 'Car Battery',   why: 'Big lead-acid battery starts the engine.',anim: 'CarBattery' },
+      { title: 'Toy AA Battery',why: 'Two AAs spin the motor in a toy car.',    anim: 'ToyAA' },
+    ],
+  },
+];
+
+/* ---------- Live reading hook (simulated Pi values) ---------- */
+function useLiveReadings() {
+  const [readings, setReadings] = useState(() =>
+    Object.fromEntries(STATIONS.map(s => [s.id, (s.range[0] + s.range[1]) / 2]))
+  );
+  useEffect(() => {
+    let raf;
+    const tick = () => {
+      setReadings(prev => {
+        const next = { ...prev };
+        STATIONS.forEach(s => {
+          const [lo, hi] = s.range;
+          const mid = (lo + hi) / 2;
+          const wobble = (Math.random() - 0.5) * (hi - lo) * 0.18;
+          const pulled = prev[s.id] + (mid - prev[s.id]) * 0.04 + wobble;
+          next[s.id] = Math.max(lo, Math.min(hi, pulled));
+        });
+        return next;
+      });
+      raf = setTimeout(tick, 700);
+    };
+    tick();
+    return () => clearTimeout(raf);
+  }, []);
+  return readings;
+}
+
+/* ---------- Small reusable bits ---------- */
+function Bolt({ left, delay }) {
+  return <span className="bolt" style={{ left: left + '%', animationDelay: delay + 's' }}>⚡</span>;
+}
+
+function RingGauge({ value, min, max, color, label, unit, size = 110 }) {
+  const pct = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  const r = (size - 14) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = c * pct;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size/2} cy={size/2} r={r} stroke="rgba(255,255,255,0.18)" strokeWidth="10" fill="none" />
+      <circle
+        cx={size/2} cy={size/2} r={r}
+        stroke={color} strokeWidth="10" fill="none"
+        strokeLinecap="round"
+        strokeDasharray={`${dash} ${c}`}
+        transform={`rotate(-90 ${size/2} ${size/2})`}
+        style={{ transition: 'stroke-dasharray 0.7s ease' }}
+      />
+      <text x="50%" y="46%" textAnchor="middle" fill="#fff" fontSize="18" fontWeight="bold">
+        {value.toFixed(unit === 'mV' ? 0 : 2)}
+      </text>
+      <text x="50%" y="62%" textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="11">{unit}</text>
+    </svg>
+  );
+}
+
+/* ---------- Example animations (12 total) ---------- */
+const ExampleAnims = {
+  SolarFarm: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="0" y="80" width="200" height="30" fill="#a7e08b" />
+      <g className="pulse">
+        <circle cx="40" cy="28" r="14" fill="#ffd166" />
+        <g stroke="#ffb703" strokeWidth="2">
+          <line x1="40" y1="6" x2="40" y2="14" />
+          <line x1="40" y1="42" x2="40" y2="50" />
+          <line x1="18" y1="28" x2="26" y2="28" />
+          <line x1="54" y1="28" x2="62" y2="28" />
+        </g>
+      </g>
+      {[80,120,160].map((x,i)=>(
+        <g key={i}>
+          <polygon points={`${x},80 ${x+30},80 ${x+34},60 ${x+4},60`} fill="#274690" />
+          <line x1={x+8} y1="63" x2={x+8} y2="78" stroke="#fff" strokeWidth="1" />
+          <line x1={x+18} y1="63" x2={x+18} y2="78" stroke="#fff" strokeWidth="1" />
+          <line x1={x+28} y1="63" x2={x+28} y2="78" stroke="#fff" strokeWidth="1" />
+        </g>
+      ))}
+    </svg>
+  ),
+  GardenLight: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="0" y="90" width="200" height="20" fill="#5a8f3a" />
+      <rect x="95" y="50" width="10" height="40" fill="#666" />
+      <polygon points="80,50 120,50 110,30 90,30" fill="#274690" />
+      <circle className="flicker" cx="100" cy="62" r="6" fill="#ffe066" />
+      <circle cx="30" cy="80" r="6" fill="#7bc36a" />
+      <circle cx="170" cy="80" r="6" fill="#7bc36a" />
+    </svg>
+  ),
+  Calculator: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="50" y="15" width="100" height="85" rx="8" fill="#333" />
+      <rect x="58" y="22" width="84" height="20" fill="#9ee493" />
+      <text x="138" y="37" textAnchor="end" fontFamily="monospace" fill="#1c2541" fontSize="14">
+        <tspan className="flicker">2+2=4</tspan>
+      </text>
+      <rect x="58" y="46" width="22" height="6" rx="2" fill="#274690" />
+      {[0,1,2,3].map(r => [0,1,2].map(c => (
+        <rect key={r+'-'+c} x={60 + c*28} y={56 + r*10} width="22" height="6" rx="2" fill="#ddd" />
+      )))}
+    </svg>
+  ),
+  WindTurbine: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="0" y="95" width="200" height="15" fill="#a7e08b" />
+      <rect x="96" y="40" width="8" height="58" fill="#eee" stroke="#888" />
+      <g className="spin-fast" style={{ transformOrigin: '100px 40px' }}>
+        <ellipse cx="100" cy="14" rx="4" ry="26" fill="#fff" stroke="#888" />
+        <ellipse cx="123" cy="52" rx="4" ry="26" fill="#fff" stroke="#888" transform="rotate(120 100 40)" />
+        <ellipse cx="77"  cy="52" rx="4" ry="26" fill="#fff" stroke="#888" transform="rotate(240 100 40)" />
+        <circle cx="100" cy="40" r="5" fill="#888" />
+      </g>
+    </svg>
+  ),
+  HydroDam: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="0" y="20" width="100" height="70" fill="#4cc9f0" />
+      <rect x="100" y="60" width="100" height="30" fill="#a7e08b" />
+      <rect x="95" y="20" width="10" height="70" fill="#888" />
+      <g className="bubble"><circle cx="120" cy="70" r="3" fill="#4cc9f0" opacity=".7"/></g>
+      <g className="bubble" style={{ animationDelay: '0.6s' }}><circle cx="135" cy="72" r="2" fill="#4cc9f0" opacity=".7"/></g>
+      <g className="spin-slow" style={{ transformOrigin: '150px 72px' }}>
+        <circle cx="150" cy="72" r="10" fill="#fff" stroke="#888" />
+        <line x1="150" y1="62" x2="150" y2="82" stroke="#888" strokeWidth="2" />
+        <line x1="140" y1="72" x2="160" y2="72" stroke="#888" strokeWidth="2" />
+      </g>
+    </svg>
+  ),
+  CrankTorch: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="50" y="40" width="80" height="30" rx="6" fill="#ff6b6b" />
+      <polygon points="130,40 160,30 160,80 130,70" fill="#ffb703" />
+      <circle className="flicker" cx="170" cy="55" r="8" fill="#ffe066" />
+      <g className="spin-fast" style={{ transformOrigin: '40px 55px' }}>
+        <line x1="40" y1="40" x2="40" y2="70" stroke="#333" strokeWidth="3" />
+        <circle cx="40" cy="40" r="4" fill="#333" />
+      </g>
+      <circle cx="40" cy="55" r="3" fill="#333" />
+    </svg>
+  ),
+  PowerPlant: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="0" y="90" width="200" height="20" fill="#bbb" />
+      <rect x="40" y="40" width="36" height="55" fill="#888" />
+      <rect x="120" y="20" width="20" height="75" fill="#aaa" />
+      <g className="steam"><ellipse cx="130" cy="18" rx="10" ry="6" fill="#fff" opacity=".8" /></g>
+      <g className="steam" style={{ animationDelay: '0.8s' }}><ellipse cx="130" cy="8" rx="14" ry="6" fill="#fff" opacity=".8" /></g>
+      <circle cx="58" cy="68" r="6" fill="#ff6b6b" className="pulse" />
+    </svg>
+  ),
+  Geothermal: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="0" y="60" width="200" height="50" fill="#8a5a3b" />
+      <rect x="0" y="90" width="200" height="20" fill="#5b3a23" />
+      <g className="steam"><ellipse cx="100" cy="50" rx="10" ry="6" fill="#fff" opacity=".8" /></g>
+      <g className="steam" style={{ animationDelay: '0.6s' }}><ellipse cx="100" cy="36" rx="14" ry="6" fill="#fff" opacity=".8" /></g>
+      <rect x="92" y="48" width="16" height="14" fill="#888" />
+      <circle cx="100" cy="92" r="4" fill="#ff6b6b" className="flicker" />
+      <circle cx="120" cy="98" r="3" fill="#ff6b6b" className="flicker" />
+      <circle cx="80"  cy="100" r="3" fill="#ff6b6b" className="flicker" />
+    </svg>
+  ),
+  BodyHeat: () => (
+    <svg viewBox="0 0 200 110">
+      <ellipse cx="100" cy="60" rx="50" ry="28" fill="#f5c79a" />
+      <rect x="70" y="40" width="60" height="40" rx="8" fill="#1c2541" />
+      <rect x="80" y="50" width="40" height="20" rx="3" fill="#4cc9f0" />
+      <text className="flicker" x="100" y="64" textAnchor="middle" fontFamily="monospace" fill="#fff" fontSize="10">12:00</text>
+      <g className="steam"><ellipse cx="100" cy="34" rx="8" ry="4" fill="#ff6b6b" opacity=".6" /></g>
+    </svg>
+  ),
+  PhoneBattery: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="70" y="10" width="60" height="90" rx="10" fill="#1c2541" />
+      <rect x="76" y="18" width="48" height="74" rx="4" fill="#4cc9f0" />
+      <rect x="82" y="60" width="36" height="26" rx="3" fill="#06d6a0" className="pulse" />
+      <text x="100" y="78" textAnchor="middle" fill="#fff" fontWeight="bold" fontSize="10">85%</text>
+      <circle cx="100" cy="98" r="3" fill="#888" />
+    </svg>
+  ),
+  CarBattery: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="50" y="40" width="100" height="55" rx="6" fill="#222" />
+      <rect x="60" y="30" width="14" height="14" fill="#888" />
+      <rect x="126" y="30" width="14" height="14" fill="#888" />
+      <text x="68" y="42" textAnchor="middle" fill="#ff6b6b" fontWeight="bold" fontSize="14">+</text>
+      <text x="133" y="42" textAnchor="middle" fill="#4cc9f0" fontWeight="bold" fontSize="14">−</text>
+      <rect x="60" y="55" width="80" height="14" rx="3" fill="#06d6a0" className="pulse" />
+      <text x="100" y="86" textAnchor="middle" fill="#fff" fontSize="9">12V</text>
+    </svg>
+  ),
+  ToyAA: () => (
+    <svg viewBox="0 0 200 110">
+      <rect x="30" y="50" width="60" height="22" rx="4" fill="#c44a4a" />
+      <rect x="90" y="55" width="6" height="12" fill="#888" />
+      <rect x="100" y="50" width="60" height="22" rx="4" fill="#c44a4a" />
+      <rect x="160" y="55" width="6" height="12" fill="#888" />
+      <text x="60" y="65" textAnchor="middle" fill="#fff" fontWeight="bold" fontSize="11">AA +</text>
+      <text x="130" y="65" textAnchor="middle" fill="#fff" fontWeight="bold" fontSize="11">AA +</text>
+      <g className="spin-fast" style={{ transformOrigin: '100px 92px' }}>
+        <circle cx="100" cy="92" r="10" fill="#888" />
+        <line x1="100" y1="82" x2="100" y2="102" stroke="#fff" strokeWidth="2" />
+      </g>
+    </svg>
+  ),
+};
+
+/* ---------- Components ---------- */
+function StationCard({ station, value }) {
+  const [lo, hi] = station.range;
+  const pct = Math.max(0, Math.min(100, ((value - lo) / (hi - lo)) * 100));
+  return (
+    <div className={`station ${station.cls}`}>
+      <Bolt left={10} delay={0} />
+      <Bolt left={70} delay={0.7} />
+      <Bolt left={45} delay={1.4} />
+      <h3><span className="emoji">{station.emoji}</span>{station.name}</h3>
+      <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+        {station.from} ➜ {station.to}
+      </div>
+      <div className="what">{station.blurb}</div>
+      <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Sensor: {station.sensor}</div>
+      <div className="reading">
+        {value.toFixed(station.unit === 'mV' ? 0 : 2)} <span className="unit">{station.unit}</span>
+      </div>
+      <div className="bar"><span style={{ width: pct + '%' }} /></div>
+    </div>
+  );
+}
+
+function PresentationSlide({ readings }) {
+  const totalPct = useMemo(() => {
+    const parts = STATIONS.map(s => {
+      const [lo, hi] = s.range;
+      return Math.max(0, Math.min(1, (readings[s.id] - lo) / (hi - lo)));
+    });
+    return parts.reduce((a,b) => a+b, 0) / parts.length;
+  }, [readings]);
+
+  return (
+    <div className="slide">
+      <h2>Live Energy Dashboard <span className="live-tag">LIVE</span></h2>
+      <p style={{ marginTop: 0, opacity: 0.85 }}>
+        Pi Zero 2 W is reading the four stations and sending the values to this slide every second.
+      </p>
+
+      <div className="pi">
+        <span className="dot" aria-label="online" />
+        <strong style={{ color: '#06d6a0' }}>raspberry-pi-zero-2 online</strong>
+        <span style={{ opacity: 0.8 }}>· MCP3008 ADC · SPI bus</span>
+        <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: 999 }}>
+          Total energy mix: {(totalPct * 100).toFixed(0)}%
+        </span>
+      </div>
+
+      <div className="progress-rings">
+        {STATIONS.map(s => (
+          <div className="ring-wrap" key={s.id}>
+            <RingGauge value={readings[s.id]} min={s.range[0]} max={s.range[1]} color={s.color} unit={s.unit} />
+            <div className="name">{s.emoji} {s.name.replace(' Power Station','')}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="energy-flow">
+        {STATIONS.map(s => (
+          <div className="flow-cell" key={s.id}>
+            <div className="lbl">{s.from}</div>
+            <div className="big" style={{ color: s.color }}>
+              {readings[s.id].toFixed(s.unit === 'mV' ? 0 : 2)} {s.unit}
+            </div>
+            <div className="lbl">➜ {s.to}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StationDetail({ station, value }) {
+  return (
+    <div className="card">
+      <h2>{station.emoji} {station.name}</h2>
+      <div style={{ color: 'var(--ink-soft)' }}>{station.from} ➜ {station.to}</div>
+      <p>{station.blurb}</p>
+      <div style={{ fontWeight: 'bold' }}>
+        Right now the Pi reads: <span style={{ color: station.color }}>
+          {value.toFixed(station.unit === 'mV' ? 0 : 2)} {station.unit}
+        </span>
+      </div>
+      <h3>3 Real-Life Examples</h3>
+      <div className="examples">
+        {station.examples.map(ex => {
+          const Anim = ExampleAnims[ex.anim];
+          return (
+            <div className="example" key={ex.title}>
+              <Anim />
+              <div className="cap">{ex.title}</div>
+              <div className="why">{ex.why}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Wiring diagram ---------- */
+function WiringDiagram() {
+  // Pi Zero 2 GPIO pin colours per BCM convention used in the diagram
+  const wires = [
+    { color: '#e63946', label: '3.3V power (red)' },
+    { color: '#000',    label: 'Ground (black)' },
+    { color: '#ffb703', label: 'SPI CLK — GPIO11 (yellow)' },
+    { color: '#06d6a0', label: 'SPI MISO — GPIO9 (green)' },
+    { color: '#4cc9f0', label: 'SPI MOSI — GPIO10 (blue)' },
+    { color: '#b5179e', label: 'SPI CE0 — GPIO8 (purple)' },
+  ];
+
+  return (
+    <div className="card">
+      <h2>🔌 Build It! Wiring Diagram</h2>
+      <p>Match each wire colour to the picture. Always ask a grown-up to help and unplug power before changing wires!</p>
+
+      <svg viewBox="0 0 900 520" style={{ width: '100%', height: 'auto', background: '#fbfaf3', borderRadius: 18 }}>
+        {/* Pi Zero 2 board */}
+        <rect x="60" y="200" width="220" height="120" rx="10" fill="#0f5132" />
+        <text x="170" y="195" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">Raspberry Pi Zero 2 W</text>
+        <rect x="80" y="220" width="40" height="40" fill="#222" />
+        <text x="100" y="244" textAnchor="middle" fill="#fff" fontSize="10">CPU</text>
+        {/* GPIO header (top edge of Pi) */}
+        <g>
+          {Array.from({length: 20}).map((_,i)=>(
+            <rect key={i} x={70 + i*10} y="200" width="6" height="8" fill="#ffd166" />
+          ))}
+        </g>
+        <text x="170" y="338" textAnchor="middle" fontSize="11" fill="#1c2541">40-pin GPIO header</text>
+
+        {/* MCP3008 chip */}
+        <rect x="400" y="200" width="120" height="120" rx="8" fill="#1c2541" />
+        <text x="460" y="195" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">MCP3008 ADC</text>
+        <text x="460" y="218" textAnchor="middle" fill="#fff" fontSize="11">8-channel</text>
+        <text x="460" y="232" textAnchor="middle" fill="#fff" fontSize="11">analog→digital</text>
+        {/* chip pins */}
+        {Array.from({length: 8}).map((_,i)=>(
+          <g key={i}>
+            <rect x="392" y={210 + i*14} width="8" height="4" fill="#aaa" />
+            <text x="386" y={215 + i*14} textAnchor="end" fontSize="9" fill="#1c2541">CH{i}</text>
+          </g>
+        ))}
+        {Array.from({length: 8}).map((_,i)=>(
+          <rect key={i} x="520" y={210 + i*14} width="8" height="4" fill="#aaa" />
+        ))}
+        <text x="540" y="215" fontSize="9" fill="#1c2541">VDD</text>
+        <text x="540" y="229" fontSize="9" fill="#1c2541">VREF</text>
+        <text x="540" y="243" fontSize="9" fill="#1c2541">AGND</text>
+        <text x="540" y="257" fontSize="9" fill="#1c2541">CLK</text>
+        <text x="540" y="271" fontSize="9" fill="#1c2541">DOUT</text>
+        <text x="540" y="285" fontSize="9" fill="#1c2541">DIN</text>
+        <text x="540" y="299" fontSize="9" fill="#1c2541">CS</text>
+        <text x="540" y="313" fontSize="9" fill="#1c2541">DGND</text>
+
+        {/* Pi -> MCP3008 wires (SPI) */}
+        <path d="M 280 208 C 340 160, 370 180, 400 212" stroke="#e63946" strokeWidth="3" fill="none" />
+        <path d="M 280 218 C 340 290, 370 320, 400 312" stroke="#000"    strokeWidth="3" fill="none" />
+        <path d="M 280 228 C 350 220, 380 250, 528 254" stroke="#ffb703" strokeWidth="3" fill="none" />
+        <path d="M 280 238 C 350 260, 380 280, 528 268" stroke="#06d6a0" strokeWidth="3" fill="none" />
+        <path d="M 280 248 C 350 300, 380 290, 528 282" stroke="#4cc9f0" strokeWidth="3" fill="none" />
+        <path d="M 280 258 C 360 330, 390 310, 528 296" stroke="#b5179e" strokeWidth="3" fill="none" />
+
+        {/* Stations */}
+        {[
+          { x: 660, y: 40,  fill: '#ffd166', emoji: '☀️', name: 'Sun Station',  ch: 'CH0', desc: 'Solar panel + / -' },
+          { x: 660, y: 160, fill: '#caf0f8', emoji: '💨', name: 'Wind Station', ch: 'CH1', desc: 'Motor + / -' },
+          { x: 660, y: 280, fill: '#ffd6d6', emoji: '🔥', name: 'Heat Station', ch: 'CH2', desc: 'Peltier hot/cold' },
+          { x: 660, y: 400, fill: '#d8f3dc', emoji: '🍋', name: 'Lemon Station',ch: 'CH3', desc: 'Zinc nail + copper coin' },
+        ].map((st, i) => (
+          <g key={st.name}>
+            <rect x={st.x} y={st.y} width="200" height="90" rx="12" fill={st.fill} stroke="#1c2541" strokeWidth="2" />
+            <text x={st.x + 100} y={st.y + 26} textAnchor="middle" fontSize="16" fontWeight="bold">{st.emoji} {st.name}</text>
+            <text x={st.x + 100} y={st.y + 48} textAnchor="middle" fontSize="11" fill="#1c2541">into MCP3008 {st.ch}</text>
+            <text x={st.x + 100} y={st.y + 66} textAnchor="middle" fontSize="11" fill="#1c2541">{st.desc}</text>
+            {/* signal wires from MCP3008 channel to station */}
+            <path
+              d={`M 392 ${217 + i*14} C 500 ${217 + i*14}, 580 ${st.y + 45}, ${st.x} ${st.y + 45}`}
+              stroke="#1c2541" strokeWidth="2" fill="none" strokeDasharray="6 4"
+            />
+            {/* ground return */}
+            <path
+              d={`M ${st.x} ${st.y + 70} C 580 ${st.y + 70}, 540 320, 528 ${311}`}
+              stroke="#000" strokeWidth="2" fill="none" strokeDasharray="3 3" opacity="0.6"
+            />
+          </g>
+        ))}
+
+        {/* Breadboard hint */}
+        <rect x="60" y="380" width="460" height="100" rx="10" fill="#fff" stroke="#bbb" />
+        <text x="290" y="402" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#1c2541">Breadboard (use a half-size one)</text>
+        {Array.from({length: 30}).map((_,i)=>(
+          <circle key={'r'+i} cx={80 + i*15} cy={425} r="3" fill="#e63946" />
+        ))}
+        {Array.from({length: 30}).map((_,i)=>(
+          <circle key={'b'+i} cx={80 + i*15} cy={460} r="3" fill="#1c2541" />
+        ))}
+        <text x="70" y="428" textAnchor="end" fontSize="10" fill="#e63946">+</text>
+        <text x="70" y="463" textAnchor="end" fontSize="10" fill="#1c2541">−</text>
+      </svg>
+
+      <h3>Wire colour key</h3>
+      <div className="wiring-legend">
+        {wires.map(w => (
+          <div className="legend-item" key={w.label}>
+            <span className="swatch" style={{ background: w.color }} />
+            <span>{w.label}</span>
+          </div>
+        ))}
+        <div className="legend-item">
+          <span className="swatch" style={{ background: '#1c2541' }} />
+          <span>Signal wire to station (dashed)</span>
+        </div>
+      </div>
+
+      <h3>Build it in 8 simple steps</h3>
+      <ol className="steps">
+        <li>Switch off the Pi and unplug the power cable. Safety first!</li>
+        <li>Plug the MCP3008 chip into the middle of the breadboard so its legs straddle the gap.</li>
+        <li>Run the <strong>red</strong> 3.3V wire from Pi pin 1 to the chip's VDD and VREF.</li>
+        <li>Run the <strong>black</strong> Ground wire from Pi pin 6 to the chip's AGND and DGND.</li>
+        <li>Connect SPI wires: <strong>yellow</strong> CLK (GPIO11) ➜ chip CLK, <strong>green</strong> MISO (GPIO9) ➜ chip DOUT, <strong>blue</strong> MOSI (GPIO10) ➜ chip DIN, <strong>purple</strong> CE0 (GPIO8) ➜ chip CS.</li>
+        <li>Wire each station's + to a chip channel: Sun ➜ CH0, Wind ➜ CH1, Heat ➜ CH2, Lemon ➜ CH3.</li>
+        <li>Wire each station's − to the breadboard's blue (−) rail, which goes back to Pi Ground.</li>
+        <li>Plug the Pi back in and run <code>energy_detective.py</code>. Watch the dashboard light up!</li>
+      </ol>
+
+      <div className="safety">
+        <strong>Grown-up helper rules:</strong>
+        <ul style={{ margin: '6px 0 0 18px' }}>
+          <li>Never plug anything bigger than 3.3V into the chip channels.</li>
+          <li>Lemon batteries are safe to touch but don't eat them after!</li>
+          <li>The Peltier can get warm — hold the heat side with a coin or a metal spoon, not bare fingers.</li>
+          <li>Always unplug the Pi before changing wires.</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- The page ---------- */
+function App() {
+  const readings = useLiveReadings();
+  const [tab, setTab] = useState('overview');
+  const tabs = [
+    { id: 'overview',  label: '🏠 Overview' },
+    { id: 'slide',     label: '📊 Live Slide' },
+    { id: 'solar',     label: '☀️ Sun' },
+    { id: 'wind',      label: '💨 Wind' },
+    { id: 'heat',      label: '🔥 Heat' },
+    { id: 'lemon',     label: '🍋 Lemon' },
+    { id: 'wiring',    label: '🔌 Build It' },
+  ];
+
+  const stationById = id => STATIONS.find(s => s.id === id);
+
+  return (
+    <div className="wrap">
+      <header className="hero">
+        <h1>⚡ Energy Detectives! ⚡</h1>
+        <p className="sub">
+          A super fun kids' project where a tiny <strong>Raspberry Pi Zero 2 W</strong> listens to
+          <strong> 4 energy stations</strong> and shows you how light, wind, heat and lemons can all
+          make electricity!
+        </p>
+        <div className="badges">
+          <span className="badge">Ages 9–12</span>
+          <span className="badge">Build time: 45 min</span>
+          <span className="badge">Skill: ⭐⭐☆☆☆</span>
+          <span className="badge">STEM-approved</span>
+        </div>
+      </header>
+
+      <nav className="tabs">
+        {tabs.map(t => (
+          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
+      {tab === 'overview' && (
+        <>
+          <div className="card">
+            <h2>Hi Energy Detective! 🕵️</h2>
+            <p>
+              Your mission: discover how 4 totally different things — the sun, a gust of wind, a bit
+              of heat, and a juicy lemon — can all make <strong>electricity</strong>. Your trusty sidekick is the
+              Raspberry Pi Zero 2 W, a computer the size of a stick of gum. It will measure each
+              station and tell you how much energy it sees!
+            </p>
+            <div className="btn-row">
+              <button className="kid-btn" onClick={() => setTab('slide')}>See the Live Slide →</button>
+              <button className="kid-btn alt" onClick={() => setTab('wiring')}>Show me how to build it →</button>
+            </div>
+          </div>
+
+          <div className="card">
+            <h2>The 4 Energy Stations</h2>
+            <div className="stations">
+              {STATIONS.map(s => <StationCard key={s.id} station={s} value={readings[s.id]} />)}
+            </div>
+          </div>
+
+          <div className="card">
+            <h2>What you'll need 🧰</h2>
+            <ul>
+              <li>1 × Raspberry Pi Zero 2 W (with a microSD card and power adapter)</li>
+              <li>1 × MCP3008 ADC chip (turns analog signals into numbers the Pi understands)</li>
+              <li>1 × small half-size breadboard + jumper wires (6 colours)</li>
+              <li>1 × small solar panel (2–5V) — the Sun Station</li>
+              <li>1 × small DC hobby motor with fan blade — the Wind Station</li>
+              <li>1 × Peltier tile (TEC1-12706) — the Heat Station</li>
+              <li>1 × lemon, 1 zinc-coated nail, 1 copper coin — the Lemon Station</li>
+              <li>A grown-up helper and a curious brain! 🧠</li>
+            </ul>
+          </div>
+        </>
+      )}
+
+      {tab === 'slide' && (
+        <PresentationSlide readings={readings} />
+      )}
+
+      {['solar','wind','heat','lemon'].includes(tab) && (
+        <StationDetail station={stationById(tab)} value={readings[tab]} />
+      )}
+
+      {tab === 'wiring' && <WiringDiagram />}
+
+      <footer className="foot">
+        Made with ⚡ and ❤️ for curious kids · A Raspberry Pi Zero 2 W STEM project
+      </footer>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
