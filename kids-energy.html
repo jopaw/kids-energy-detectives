@@ -342,7 +342,9 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, useRef } = React;
 
-/* ---------- Station data ---------- */
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const formatReading = (v, unit) => v.toFixed(unit === 'mV' ? 0 : 2);
+
 const STATIONS = [
   {
     id: 'solar',
@@ -418,7 +420,6 @@ const STATIONS = [
   },
 ];
 
-/* ---------- Live reading hook (simulated Pi values) ---------- */
 function useLiveReadings() {
   const [readings, setReadings] = useState(() =>
     Object.fromEntries(STATIONS.map(s => [s.id, (s.range[0] + s.range[1]) / 2]))
@@ -445,13 +446,12 @@ function useLiveReadings() {
   return readings;
 }
 
-/* ---------- Small reusable bits ---------- */
 function Bolt({ left, delay }) {
   return <span className="bolt" style={{ left: left + '%', animationDelay: delay + 's' }}>⚡</span>;
 }
 
-function RingGauge({ value, min, max, color, label, unit, size = 110 }) {
-  const pct = Math.max(0, Math.min(1, (value - min) / (max - min)));
+function RingGauge({ value, min, max, color, unit, size = 110 }) {
+  const pct = clamp((value - min) / (max - min), 0, 1);
   const r = (size - 14) / 2;
   const c = 2 * Math.PI * r;
   const dash = c * pct;
@@ -467,14 +467,13 @@ function RingGauge({ value, min, max, color, label, unit, size = 110 }) {
         style={{ transition: 'stroke-dasharray 0.7s ease' }}
       />
       <text x="50%" y="46%" textAnchor="middle" fill="#fff" fontSize="18" fontWeight="bold">
-        {value.toFixed(unit === 'mV' ? 0 : 2)}
+        {formatReading(value, unit)}
       </text>
       <text x="50%" y="62%" textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="11">{unit}</text>
     </svg>
   );
 }
 
-/* ---------- Example animations (12 total) ---------- */
 const ExampleAnims = {
   SolarFarm: () => (
     <svg viewBox="0 0 200 110">
@@ -626,10 +625,9 @@ const ExampleAnims = {
   ),
 };
 
-/* ---------- Components ---------- */
 function StationCard({ station, value }) {
   const [lo, hi] = station.range;
-  const pct = Math.max(0, Math.min(100, ((value - lo) / (hi - lo)) * 100));
+  const pct = clamp((value - lo) / (hi - lo), 0, 1) * 100;
   return (
     <div className={`station ${station.cls}`}>
       <Bolt left={10} delay={0} />
@@ -642,7 +640,7 @@ function StationCard({ station, value }) {
       <div className="what">{station.blurb}</div>
       <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Sensor: {station.sensor}</div>
       <div className="reading">
-        {value.toFixed(station.unit === 'mV' ? 0 : 2)} <span className="unit">{station.unit}</span>
+        {formatReading(value, station.unit)} <span className="unit">{station.unit}</span>
       </div>
       <div className="bar"><span style={{ width: pct + '%' }} /></div>
     </div>
@@ -653,7 +651,7 @@ function PresentationSlide({ readings }) {
   const totalPct = useMemo(() => {
     const parts = STATIONS.map(s => {
       const [lo, hi] = s.range;
-      return Math.max(0, Math.min(1, (readings[s.id] - lo) / (hi - lo)));
+      return clamp((readings[s.id] - lo) / (hi - lo), 0, 1);
     });
     return parts.reduce((a,b) => a+b, 0) / parts.length;
   }, [readings]);
@@ -688,7 +686,7 @@ function PresentationSlide({ readings }) {
           <div className="flow-cell" key={s.id}>
             <div className="lbl">{s.from}</div>
             <div className="big" style={{ color: s.color }}>
-              {readings[s.id].toFixed(s.unit === 'mV' ? 0 : 2)} {s.unit}
+              {formatReading(readings[s.id], s.unit)} {s.unit}
             </div>
             <div className="lbl">➜ {s.to}</div>
           </div>
@@ -706,7 +704,7 @@ function StationDetail({ station, value }) {
       <p>{station.blurb}</p>
       <div style={{ fontWeight: 'bold' }}>
         Right now the Pi reads: <span style={{ color: station.color }}>
-          {value.toFixed(station.unit === 'mV' ? 0 : 2)} {station.unit}
+          {formatReading(value, station.unit)} {station.unit}
         </span>
       </div>
       <h3>3 Real-Life Examples</h3>
@@ -726,7 +724,6 @@ function StationDetail({ station, value }) {
   );
 }
 
-/* ---------- Wiring diagram ---------- */
 function WiringDiagram() {
   // Pi Zero 2 GPIO pin colours per BCM convention used in the diagram
   const wires = [
@@ -866,21 +863,20 @@ function WiringDiagram() {
   );
 }
 
-/* ---------- The page ---------- */
+const TABS = [
+  { id: 'overview', label: '🏠 Overview' },
+  { id: 'slide',    label: '📊 Live Slide' },
+  { id: 'solar',    label: '☀️ Sun' },
+  { id: 'wind',     label: '💨 Wind' },
+  { id: 'heat',     label: '🔥 Heat' },
+  { id: 'lemon',    label: '🍋 Lemon' },
+  { id: 'wiring',   label: '🔌 Build It' },
+];
+
 function App() {
   const readings = useLiveReadings();
   const [tab, setTab] = useState('overview');
-  const tabs = [
-    { id: 'overview',  label: '🏠 Overview' },
-    { id: 'slide',     label: '📊 Live Slide' },
-    { id: 'solar',     label: '☀️ Sun' },
-    { id: 'wind',      label: '💨 Wind' },
-    { id: 'heat',      label: '🔥 Heat' },
-    { id: 'lemon',     label: '🍋 Lemon' },
-    { id: 'wiring',    label: '🔌 Build It' },
-  ];
-
-  const stationById = id => STATIONS.find(s => s.id === id);
+  const station = STATIONS.find(s => s.id === tab);
 
   return (
     <div className="wrap">
@@ -900,7 +896,7 @@ function App() {
       </header>
 
       <nav className="tabs">
-        {tabs.map(t => (
+        {TABS.map(t => (
           <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
             {t.label}
           </button>
@@ -950,8 +946,8 @@ function App() {
         <PresentationSlide readings={readings} />
       )}
 
-      {['solar','wind','heat','lemon'].includes(tab) && (
-        <StationDetail station={stationById(tab)} value={readings[tab]} />
+      {station && (
+        <StationDetail station={station} value={readings[tab]} />
       )}
 
       {tab === 'wiring' && <WiringDiagram />}
