@@ -239,6 +239,23 @@
   }
   .swatch { width: 22px; height: 12px; border-radius: 4px; flex: 0 0 auto; }
 
+  .circuits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+    margin-top: 10px;
+  }
+  .circuit-card {
+    background: #faf7ee;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    border: 2px solid #f0e7c8;
+  }
+  .circuit-card h4 { margin: 0 0 8px; font-size: 1.05rem; }
+  .circuit-card svg { width: 100%; height: auto; background: #fff; border-radius: 10px; }
+  .ckt-note { font-size: 0.88rem; color: var(--ink-soft); margin: 8px 0 0; }
+  .parts-list li { margin-bottom: 4px; }
+
   .steps { counter-reset: step; padding-left: 0; list-style: none; }
   .steps li {
     counter-increment: step;
@@ -523,12 +540,14 @@ const ExampleAnims = {
   WindTurbine: () => (
     <svg viewBox="0 0 200 110">
       <rect x="0" y="95" width="200" height="15" fill="#a7e08b" />
-      <rect x="96" y="40" width="8" height="58" fill="#eee" stroke="#888" />
-      <g className="spin-fast" style={{ transformOrigin: '100px 40px' }}>
-        <ellipse cx="100" cy="14" rx="4" ry="26" fill="#fff" stroke="#888" />
-        <ellipse cx="123" cy="52" rx="4" ry="26" fill="#fff" stroke="#888" transform="rotate(120 100 40)" />
-        <ellipse cx="77"  cy="52" rx="4" ry="26" fill="#fff" stroke="#888" transform="rotate(240 100 40)" />
-        <circle cx="100" cy="40" r="5" fill="#888" />
+      <polygon points="98,98 102,98 104,42 96,42" fill="#eee" stroke="#888" />
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 100 42" to="360 100 42" dur="1.6s" repeatCount="indefinite" />
+        {[0, 120, 240].map(a => (
+          <polygon key={a} points="100,40 103.5,20 101.5,8 98.5,8 96.5,20" fill="#fff" stroke="#666" strokeWidth="1.2" transform={`rotate(${a} 100 42)`} />
+        ))}
+        <circle cx="100" cy="42" r="5" fill="#555" />
+        <circle cx="100" cy="42" r="2" fill="#222" />
       </g>
     </svg>
   ),
@@ -536,26 +555,34 @@ const ExampleAnims = {
     <svg viewBox="0 0 200 110">
       <rect x="0" y="20" width="100" height="70" fill="#4cc9f0" />
       <rect x="100" y="60" width="100" height="30" fill="#a7e08b" />
-      <rect x="95" y="20" width="10" height="70" fill="#888" />
-      <g className="bubble"><circle cx="120" cy="70" r="3" fill="#4cc9f0" opacity=".7"/></g>
-      <g className="bubble" style={{ animationDelay: '0.6s' }}><circle cx="135" cy="72" r="2" fill="#4cc9f0" opacity=".7"/></g>
-      <g className="spin-slow" style={{ transformOrigin: '150px 72px' }}>
-        <circle cx="150" cy="72" r="10" fill="#fff" stroke="#888" />
-        <line x1="150" y1="62" x2="150" y2="82" stroke="#888" strokeWidth="2" />
-        <line x1="140" y1="72" x2="160" y2="72" stroke="#888" strokeWidth="2" />
+      <polygon points="92,18 108,18 104,90 96,90" fill="#888" />
+      <rect x="100" y="60" width="22" height="6" fill="#274690" />
+      <g className="bubble"><circle cx="125" cy="72" r="3" fill="#4cc9f0" opacity=".7"/></g>
+      <g className="bubble" style={{ animationDelay: '0.6s' }}><circle cx="138" cy="74" r="2" fill="#4cc9f0" opacity=".7"/></g>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 158 75" to="360 158 75" dur="2.4s" repeatCount="indefinite" />
+        <circle cx="158" cy="75" r="11" fill="#fff" stroke="#666" strokeWidth="1.2" />
+        {[0, 60, 120, 180, 240, 300].map(a => (
+          <rect key={a} x="156.5" y="64" width="3" height="9" fill="#666" transform={`rotate(${a} 158 75)`} />
+        ))}
+        <circle cx="158" cy="75" r="2.5" fill="#333" />
       </g>
     </svg>
   ),
   CrankTorch: () => (
     <svg viewBox="0 0 200 110">
-      <rect x="50" y="40" width="80" height="30" rx="6" fill="#ff6b6b" />
-      <polygon points="130,40 160,30 160,80 130,70" fill="#ffb703" />
-      <circle className="flicker" cx="170" cy="55" r="8" fill="#ffe066" />
-      <g className="spin-fast" style={{ transformOrigin: '40px 55px' }}>
-        <line x1="40" y1="40" x2="40" y2="70" stroke="#333" strokeWidth="3" />
-        <circle cx="40" cy="40" r="4" fill="#333" />
+      <rect x="50" y="42" width="80" height="32" rx="6" fill="#ff6b6b" />
+      <rect x="58" y="48" width="14" height="20" rx="2" fill="#c44a4a" />
+      <text x="65" y="62" textAnchor="middle" fontSize="9" fill="#fff" fontWeight="bold">⚡</text>
+      <polygon points="130,42 162,30 162,86 130,74" fill="#ffb703" stroke="#b8830a" />
+      <circle className="flicker" cx="172" cy="58" r="10" fill="#ffe066" />
+      <circle cx="40" cy="58" r="5" fill="#222" />
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 40 58" to="360 40 58" dur="1.4s" repeatCount="indefinite" />
+        <line x1="40" y1="58" x2="40" y2="36" stroke="#333" strokeWidth="3" strokeLinecap="round" />
+        <line x1="40" y1="36" x2="52" y2="36" stroke="#333" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="54" cy="36" r="3.5" fill="#111" />
       </g>
-      <circle cx="40" cy="55" r="3" fill="#333" />
     </svg>
   ),
   PowerPlant: () => (
@@ -724,105 +751,353 @@ function StationDetail({ station, value }) {
   );
 }
 
+const PI_PIN_NAMES = [
+  '3V3',    '5V',
+  'GPIO2',  '5V',
+  'GPIO3',  'GND',
+  'GPIO4',  'GPIO14',
+  'GND',    'GPIO15',
+  'GPIO17', 'GPIO18',
+  'GPIO27', 'GND',
+  'GPIO22', 'GPIO23',
+  '3V3',    'GPIO24',
+  'MOSI',   'GND',
+  'MISO',   'GPIO25',
+  'SCLK',   'CE0',
+  'GND',    'GPIO7',
+];
+const PI_USED_PIN_COLOR = {
+  1:  '#e63946',
+  6:  '#000',
+  19: '#4cc9f0',
+  21: '#06d6a0',
+  23: '#ffb703',
+  24: '#b5179e',
+};
+const MCP_PIN_NAMES = {
+  1:'CH0', 2:'CH1', 3:'CH2', 4:'CH3', 5:'CH4', 6:'CH5', 7:'CH6', 8:'CH7',
+  9:'DGND', 10:'CS', 11:'DIN', 12:'DOUT', 13:'CLK', 14:'AGND', 15:'VREF', 16:'VDD',
+};
+const MCP_LEFT_PINS  = [16, 15, 14, 13, 12, 11, 10, 9];
+const MCP_RIGHT_PINS = [1, 2, 3, 4, 5, 6, 7, 8];
+
 function WiringDiagram() {
-  // Pi Zero 2 GPIO pin colours per BCM convention used in the diagram
   const wires = [
-    { color: '#e63946', label: '3.3V power (red)' },
-    { color: '#000',    label: 'Ground (black)' },
-    { color: '#ffb703', label: 'SPI CLK — GPIO11 (yellow)' },
-    { color: '#06d6a0', label: 'SPI MISO — GPIO9 (green)' },
-    { color: '#4cc9f0', label: 'SPI MOSI — GPIO10 (blue)' },
-    { color: '#b5179e', label: 'SPI CE0 — GPIO8 (purple)' },
+    { color: '#e63946', label: 'Red — 3V3 power (Pi pin 1)' },
+    { color: '#000',    label: 'Black — Ground (Pi pin 6)' },
+    { color: '#ffb703', label: 'Yellow — SPI SCLK (Pi pin 23 / GPIO11)' },
+    { color: '#06d6a0', label: 'Green — SPI MISO (Pi pin 21 / GPIO9)' },
+    { color: '#4cc9f0', label: 'Blue — SPI MOSI (Pi pin 19 / GPIO10)' },
+    { color: '#b5179e', label: 'Purple — SPI CE0 (Pi pin 24 / GPIO8)' },
   ];
+
+  const PIN_X_L = 220, PIN_X_R = 248, PIN_TOP = 96, PIN_DY = 34, PIN_W = 22, PIN_H = 20;
+  const pinPos = (n) => {
+    const pair = Math.ceil(n / 2);
+    const isLeft = n % 2 === 1;
+    const x = isLeft ? PIN_X_L : PIN_X_R;
+    const y = PIN_TOP + (pair - 1) * PIN_DY;
+    return { x, y, cy: y + PIN_H / 2, rightEdge: x + PIN_W };
+  };
+
+  const MCP_X = 480, MCP_Y = 150, MCP_W = 140, MCP_H = 320;
+  const mcpPos = (n) => {
+    const onLeft = n >= 9;
+    const order = onLeft ? MCP_LEFT_PINS : MCP_RIGHT_PINS;
+    const idx = order.indexOf(n);
+    const y = MCP_Y + 30 + idx * ((MCP_H - 60) / 7);
+    return { x: onLeft ? MCP_X : MCP_X + MCP_W, y, onLeft };
+  };
+
+  const wirePath = (piPin, mcpPin, color) => {
+    const p = pinPos(piPin);
+    const m = mcpPos(mcpPin);
+    const startX = p.rightEdge;
+    const midX = (startX + m.x) / 2;
+    return (
+      <path key={`${piPin}-${mcpPin}`}
+        d={`M ${startX} ${p.cy} C ${midX} ${p.cy}, ${midX} ${m.y}, ${m.x} ${m.y}`}
+        stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    );
+  };
+
+  const VDDy = mcpPos(16).y;
+  const VREFy = mcpPos(15).y;
+  const AGNDy = mcpPos(14).y;
+  const DGNDy = mcpPos(9).y;
 
   return (
     <div className="card">
       <h2>🔌 Build It! Wiring Diagram</h2>
-      <p>Match each wire colour to the picture. Always ask a grown-up to help and unplug power before changing wires!</p>
+      <p>This is the real circuit. The little parts (resistors, diodes, a transistor and capacitors) are seat-belts that keep too much voltage from reaching the tiny Pi. Ask a grown-up to help, and always unplug the Pi before changing wires.</p>
 
-      <svg viewBox="0 0 900 520" style={{ width: '100%', height: 'auto', background: '#fbfaf3', borderRadius: 18 }}>
-        {/* Pi Zero 2 board */}
-        <rect x="60" y="200" width="220" height="120" rx="10" fill="#0f5132" />
-        <text x="170" y="195" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">Raspberry Pi Zero 2 W</text>
-        <rect x="80" y="220" width="40" height="40" fill="#222" />
-        <text x="100" y="244" textAnchor="middle" fill="#fff" fontSize="10">CPU</text>
-        {/* GPIO header (top edge of Pi) */}
+      <h3>Pi GPIO header ↔ MCP3008 connections</h3>
+      <svg viewBox="0 0 760 600" style={{ width: '100%', height: 'auto', background: '#fbfaf3', borderRadius: 18 }}>
+        {/* Pi board background */}
+        <rect x="20" y="60" width="190" height="520" rx="14" fill="#0f5132" />
+        <text x="115" y="84" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">Raspberry Pi Zero 2 W</text>
+        <rect x="40" y="100" width="80" height="58" fill="#222" />
+        <text x="80" y="133" textAnchor="middle" fill="#fff" fontSize="11">BCM2710</text>
+        <rect x="40" y="170" width="50" height="32" fill="#444" />
+        <text x="65" y="190" textAnchor="middle" fill="#fff" fontSize="9">SD card</text>
+        <rect x="135" y="540" width="60" height="22" rx="3" fill="#222" />
+        <text x="165" y="555" textAnchor="middle" fontSize="9" fill="#fff">micro-USB</text>
+        <text x={PIN_X_L - 14} y={PIN_TOP - 6} fontSize="9" fill="#ffd166" fontWeight="bold">↓ pin 1 (corner near SD)</text>
+
+        {/* Wires drawn first so pin squares sit on top */}
+        {wirePath(1, 16, '#e63946')}
+        {/* VDD → VREF jumper inside chip side */}
         <g>
-          {Array.from({length: 20}).map((_,i)=>(
-            <rect key={i} x={70 + i*10} y="200" width="6" height="8" fill="#ffd166" />
-          ))}
+          <circle cx={MCP_X - 18} cy={VDDy} r="3" fill="#e63946" />
+          <path d={`M ${MCP_X} ${VDDy} L ${MCP_X - 18} ${VDDy} L ${MCP_X - 18} ${VREFy} L ${MCP_X} ${VREFy}`}
+            stroke="#e63946" strokeWidth="2.5" fill="none" />
         </g>
-        <text x="170" y="338" textAnchor="middle" fontSize="11" fill="#1c2541">40-pin GPIO header</text>
+        {wirePath(6, 9, '#000')}
+        {/* DGND → AGND jumper */}
+        <g>
+          <circle cx={MCP_X - 32} cy={DGNDy} r="3" fill="#000" />
+          <path d={`M ${MCP_X} ${DGNDy} L ${MCP_X - 32} ${DGNDy} L ${MCP_X - 32} ${AGNDy} L ${MCP_X} ${AGNDy}`}
+            stroke="#000" strokeWidth="2.5" fill="none" />
+        </g>
+        {wirePath(23, 13, '#ffb703')}
+        {wirePath(21, 12, '#06d6a0')}
+        {wirePath(19, 11, '#4cc9f0')}
+        {wirePath(24, 10, '#b5179e')}
 
-        {/* MCP3008 chip */}
-        <rect x="400" y="200" width="120" height="120" rx="8" fill="#1c2541" />
-        <text x="460" y="195" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">MCP3008 ADC</text>
-        <text x="460" y="218" textAnchor="middle" fill="#fff" fontSize="11">8-channel</text>
-        <text x="460" y="232" textAnchor="middle" fill="#fff" fontSize="11">analog→digital</text>
-        {/* chip pins */}
-        {Array.from({length: 8}).map((_,i)=>(
-          <g key={i}>
-            <rect x="392" y={210 + i*14} width="8" height="4" fill="#aaa" />
-            <text x="386" y={215 + i*14} textAnchor="end" fontSize="9" fill="#1c2541">CH{i}</text>
-          </g>
-        ))}
-        {Array.from({length: 8}).map((_,i)=>(
-          <rect key={i} x="520" y={210 + i*14} width="8" height="4" fill="#aaa" />
-        ))}
-        <text x="540" y="215" fontSize="9" fill="#1c2541">VDD</text>
-        <text x="540" y="229" fontSize="9" fill="#1c2541">VREF</text>
-        <text x="540" y="243" fontSize="9" fill="#1c2541">AGND</text>
-        <text x="540" y="257" fontSize="9" fill="#1c2541">CLK</text>
-        <text x="540" y="271" fontSize="9" fill="#1c2541">DOUT</text>
-        <text x="540" y="285" fontSize="9" fill="#1c2541">DIN</text>
-        <text x="540" y="299" fontSize="9" fill="#1c2541">CS</text>
-        <text x="540" y="313" fontSize="9" fill="#1c2541">DGND</text>
+        {/* MCP3008 chip body */}
+        <rect x={MCP_X} y={MCP_Y} width={MCP_W} height={MCP_H} rx="6" fill="#1c2541" />
+        <text x={MCP_X + MCP_W/2} y={MCP_Y + 18} textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">MCP3008</text>
+        <text x={MCP_X + MCP_W/2} y={MCP_Y + 34} textAnchor="middle" fontSize="9" fill="#aaa">8-ch SPI ADC</text>
+        <circle cx={MCP_X + MCP_W/2} cy={MCP_Y + 3} r="5" fill="#fbfaf3" />
+        <text x={MCP_X + MCP_W/2 + 10} y={MCP_Y + 6} fontSize="8" fill="#fbfaf3">notch = top</text>
 
-        {/* Pi -> MCP3008 wires (SPI) */}
-        <path d="M 280 208 C 340 160, 370 180, 400 212" stroke="#e63946" strokeWidth="3" fill="none" />
-        <path d="M 280 218 C 340 290, 370 320, 400 312" stroke="#000"    strokeWidth="3" fill="none" />
-        <path d="M 280 228 C 350 220, 380 250, 528 254" stroke="#ffb703" strokeWidth="3" fill="none" />
-        <path d="M 280 238 C 350 260, 380 280, 528 268" stroke="#06d6a0" strokeWidth="3" fill="none" />
-        <path d="M 280 248 C 350 300, 380 290, 528 282" stroke="#4cc9f0" strokeWidth="3" fill="none" />
-        <path d="M 280 258 C 360 330, 390 310, 528 296" stroke="#b5179e" strokeWidth="3" fill="none" />
+        {/* MCP pins on left side (power + SPI), top to bottom: 16,15,14,13,12,11,10,9 */}
+        {MCP_LEFT_PINS.map(pin => {
+          const p = mcpPos(pin);
+          return (
+            <g key={`L${pin}`}>
+              <rect x={p.x - 12} y={p.y - 3} width="12" height="6" fill="#cfd8e3" />
+              <text x={p.x - 16} y={p.y + 3} textAnchor="end" fontSize="9" fill="#1c2541" fontWeight="bold">{pin}</text>
+              <text x={p.x + 6} y={p.y + 3} fontSize="9" fill="#fff" fontWeight="bold">{MCP_PIN_NAMES[pin]}</text>
+            </g>
+          );
+        })}
+        {/* MCP pins on right side (CH0-CH7), top to bottom */}
+        {MCP_RIGHT_PINS.map(pin => {
+          const p = mcpPos(pin);
+          return (
+            <g key={`R${pin}`}>
+              <rect x={p.x} y={p.y - 3} width="12" height="6" fill="#cfd8e3" />
+              <text x={p.x + 16} y={p.y + 3} fontSize="9" fill="#1c2541" fontWeight="bold">{pin}</text>
+              <text x={p.x - 6} y={p.y + 3} textAnchor="end" fontSize="9" fill="#fff" fontWeight="bold">{MCP_PIN_NAMES[pin]}</text>
+            </g>
+          );
+        })}
 
-        {/* Stations */}
+        {/* Station signal arrows on right side of MCP into CH0-CH3 */}
         {[
-          { x: 660, y: 40,  fill: '#ffd166', emoji: '☀️', name: 'Sun Station',  ch: 'CH0', desc: 'Solar panel + / -' },
-          { x: 660, y: 160, fill: '#caf0f8', emoji: '💨', name: 'Wind Station', ch: 'CH1', desc: 'Motor + / -' },
-          { x: 660, y: 280, fill: '#ffd6d6', emoji: '🔥', name: 'Heat Station', ch: 'CH2', desc: 'Peltier hot/cold' },
-          { x: 660, y: 400, fill: '#d8f3dc', emoji: '🍋', name: 'Lemon Station',ch: 'CH3', desc: 'Zinc nail + copper coin' },
-        ].map((st, i) => (
-          <g key={st.name}>
-            <rect x={st.x} y={st.y} width="200" height="90" rx="12" fill={st.fill} stroke="#1c2541" strokeWidth="2" />
-            <text x={st.x + 100} y={st.y + 26} textAnchor="middle" fontSize="16" fontWeight="bold">{st.emoji} {st.name}</text>
-            <text x={st.x + 100} y={st.y + 48} textAnchor="middle" fontSize="11" fill="#1c2541">into MCP3008 {st.ch}</text>
-            <text x={st.x + 100} y={st.y + 66} textAnchor="middle" fontSize="11" fill="#1c2541">{st.desc}</text>
-            {/* signal wires from MCP3008 channel to station */}
-            <path
-              d={`M 392 ${217 + i*14} C 500 ${217 + i*14}, 580 ${st.y + 45}, ${st.x} ${st.y + 45}`}
-              stroke="#1c2541" strokeWidth="2" fill="none" strokeDasharray="6 4"
-            />
-            {/* ground return */}
-            <path
-              d={`M ${st.x} ${st.y + 70} C 580 ${st.y + 70}, 540 320, 528 ${311}`}
-              stroke="#000" strokeWidth="2" fill="none" strokeDasharray="3 3" opacity="0.6"
-            />
-          </g>
-        ))}
+          { ch: 1, emoji: '☀️', name: 'Sun signal in' },
+          { ch: 2, emoji: '💨', name: 'Wind signal in' },
+          { ch: 3, emoji: '🔥', name: 'Heat signal in' },
+          { ch: 4, emoji: '🍋', name: 'Lemon signal in' },
+        ].map(s => {
+          const c = mcpPos(s.ch);
+          return (
+            <g key={s.ch}>
+              <line x1={c.x + 30} y1={c.y} x2={c.x + 110} y2={c.y} stroke="#1c2541" strokeWidth="2" />
+              <polygon points={`${c.x + 30},${c.y - 5} ${c.x + 30},${c.y + 5} ${c.x + 20},${c.y}`} fill="#1c2541" />
+              <text x={c.x + 116} y={c.y + 4} fontSize="11" fill="#1c2541" fontWeight="bold">{s.emoji} {s.name}</text>
+              <text x={c.x + 116} y={c.y + 16} fontSize="9" fill="#1c2541">(from circuit below)</text>
+            </g>
+          );
+        })}
 
-        {/* Breadboard hint */}
-        <rect x="60" y="380" width="460" height="100" rx="10" fill="#fff" stroke="#bbb" />
-        <text x="290" y="402" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#1c2541">Breadboard (use a half-size one)</text>
-        {Array.from({length: 30}).map((_,i)=>(
-          <circle key={'r'+i} cx={80 + i*15} cy={425} r="3" fill="#e63946" />
-        ))}
-        {Array.from({length: 30}).map((_,i)=>(
-          <circle key={'b'+i} cx={80 + i*15} cy={460} r="3" fill="#1c2541" />
-        ))}
-        <text x="70" y="428" textAnchor="end" fontSize="10" fill="#e63946">+</text>
-        <text x="70" y="463" textAnchor="end" fontSize="10" fill="#1c2541">−</text>
+        {/* Decoupling cap C0 between VDD and AGND on the chip-side rails */}
+        <g>
+          <text x={MCP_X - 90} y={(VDDy + AGNDy)/2 - 6} fontSize="9" fill="#1c2541" fontWeight="bold">C0 · 100nF</text>
+          <text x={MCP_X - 90} y={(VDDy + AGNDy)/2 + 6} fontSize="8" fill="#1c2541">(decoupling)</text>
+          <line x1={MCP_X - 18} y1={(VDDy + AGNDy)/2 - 6} x2={MCP_X - 32} y2={(VDDy + AGNDy)/2 - 6} stroke="#1c2541" strokeWidth="1.5" />
+          <line x1={MCP_X - 28} y1={(VDDy + AGNDy)/2 - 12} x2={MCP_X - 28} y2={(VDDy + AGNDy)/2} stroke="#000" strokeWidth="2" />
+          <line x1={MCP_X - 36} y1={(VDDy + AGNDy)/2} x2={MCP_X - 20} y2={(VDDy + AGNDy)/2} stroke="#000" strokeWidth="2" />
+          <line x1={MCP_X - 32} y1={(VDDy + AGNDy)/2 + 6} x2={MCP_X - 32} y2={(VDDy + AGNDy)/2 + 16} stroke="#1c2541" strokeWidth="1.5" />
+        </g>
+
+        {/* Pi pin squares — drawn last so they sit on top of any crossing wires */}
+        <text x={PIN_X_L + PIN_W/2} y={PIN_TOP - 6} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">odd</text>
+        <text x={PIN_X_R + PIN_W/2} y={PIN_TOP - 6} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">even</text>
+        {Array.from({length: 13}).map((_, i) => {
+          const yTop = PIN_TOP + i * PIN_DY;
+          const leftN = i * 2 + 1, rightN = leftN + 1;
+          const leftColor = PI_USED_PIN_COLOR[leftN], rightColor = PI_USED_PIN_COLOR[rightN];
+          return (
+            <g key={i}>
+              <rect x={PIN_X_L} y={yTop} width={PIN_W} height={PIN_H} rx="3"
+                fill={leftColor || '#ffd166'} stroke="#fff" strokeWidth={leftColor ? '2' : '1'} />
+              <text x={PIN_X_L - 4} y={yTop + 14} textAnchor="end" fontSize="10" fill="#fff" fontWeight="bold">{leftN}</text>
+              <text x={PIN_X_L + PIN_W/2} y={yTop + 14} textAnchor="middle" fontSize="8" fontWeight="bold"
+                fill={leftColor ? '#fff' : '#1c2541'}>{PI_PIN_NAMES[leftN - 1]}</text>
+              <rect x={PIN_X_R} y={yTop} width={PIN_W} height={PIN_H} rx="3"
+                fill={rightColor || '#ffd166'} stroke="#fff" strokeWidth={rightColor ? '2' : '1'} />
+              <text x={PIN_X_R + PIN_W/2} y={yTop + 14} textAnchor="middle" fontSize="8" fontWeight="bold"
+                fill={rightColor ? '#fff' : '#1c2541'}>{PI_PIN_NAMES[rightN - 1]}</text>
+              <text x={PIN_X_R + PIN_W + 4} y={yTop + 14} fontSize="10" fill="#fff" fontWeight="bold">{rightN}</text>
+            </g>
+          );
+        })}
       </svg>
+
+      <h3>Station signal-conditioning circuits</h3>
+      <p>Each station has its own little safety circuit before its wire reaches the MCP3008.</p>
+
+      <div className="circuits-grid">
+        {/* Solar */}
+        <div className="circuit-card">
+          <h4>☀️ Sun → CH0</h4>
+          <svg viewBox="0 0 360 200">
+            <rect x="14" y="60" width="60" height="54" fill="#274690" stroke="#1c2541" />
+            <line x1="14" y1="74" x2="74" y2="74" stroke="#fff" />
+            <line x1="14" y1="88" x2="74" y2="88" stroke="#fff" />
+            <line x1="14" y1="102" x2="74" y2="102" stroke="#fff" />
+            <line x1="34" y1="60" x2="34" y2="114" stroke="#fff" />
+            <line x1="54" y1="60" x2="54" y2="114" stroke="#fff" />
+            <text x="44" y="52" textAnchor="middle" fontSize="10" fill="#1c2541" fontWeight="bold">Solar panel</text>
+            <text x="22" y="128" fontSize="9" fill="#1c2541">+ (top)</text>
+            <text x="22" y="158" fontSize="9" fill="#1c2541">− (bottom)</text>
+            {/* + wire */}
+            <line x1="74" y1="72" x2="106" y2="72" stroke="#e63946" strokeWidth="2" />
+            {/* R1 (zig-zag) */}
+            <polyline points="106,72 112,64 120,80 128,64 136,80 144,64 150,72" stroke="#1c2541" strokeWidth="2" fill="none" />
+            <text x="128" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R1 · 22kΩ</text>
+            <line x1="150" y1="72" x2="178" y2="72" stroke="#e63946" strokeWidth="2" />
+            <circle cx="178" cy="72" r="2.8" fill="#1c2541" />
+            {/* D1 Schottky */}
+            <line x1="178" y1="72" x2="208" y2="72" stroke="#e63946" strokeWidth="2" />
+            <polygon points="208,64 208,80 222,72" fill="#1c2541" />
+            <line x1="222" y1="64" x2="222" y2="80" stroke="#1c2541" strokeWidth="2" />
+            <text x="215" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D1 · 1N5817</text>
+            <line x1="222" y1="72" x2="296" y2="72" stroke="#e63946" strokeWidth="2" />
+            <text x="332" y="76" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH0</text>
+            {/* R2 to GND */}
+            <line x1="178" y1="72" x2="178" y2="98" stroke="#1c2541" strokeWidth="2" />
+            <polyline points="178,98 170,104 186,112 170,120 186,128 170,136 178,142" stroke="#1c2541" strokeWidth="2" fill="none" />
+            <text x="196" y="124" fontSize="9" fill="#1c2541" fontWeight="bold">R2 · 10kΩ</text>
+            <line x1="178" y1="142" x2="178" y2="174" stroke="#000" strokeWidth="2" />
+            {/* GND rail */}
+            <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
+            <line x1="44" y1="148" x2="44" y2="174" stroke="#000" strokeWidth="2" />
+            <polygon points="316,174 324,174 320,182" fill="#000" />
+            <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
+          </svg>
+          <p className="ckt-note">R1 + R2 divide a 5V panel down to a safe ~3.3V on CH0. D1 (Schottky) blocks reverse current when the panel sits in shadow.</p>
+        </div>
+
+        {/* Wind */}
+        <div className="circuit-card">
+          <h4>💨 Wind → CH1</h4>
+          <svg viewBox="0 0 360 200">
+            <circle cx="44" cy="86" r="22" fill="none" stroke="#1c2541" strokeWidth="2" />
+            <text x="44" y="90" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">M</text>
+            <text x="44" y="56" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#1c2541">Motor</text>
+            {/* + wire from motor */}
+            <line x1="66" y1="80" x2="96" y2="80" stroke="#e63946" strokeWidth="2" />
+            {/* D2 rectifier */}
+            <polygon points="96,72 96,88 110,80" fill="#1c2541" />
+            <line x1="110" y1="72" x2="110" y2="88" stroke="#1c2541" strokeWidth="2" />
+            <text x="103" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4148</text>
+            <line x1="110" y1="80" x2="146" y2="80" stroke="#e63946" strokeWidth="2" />
+            <circle cx="146" cy="80" r="2.8" fill="#1c2541" />
+            {/* C1 cap down to GND */}
+            <line x1="146" y1="80" x2="146" y2="108" stroke="#1c2541" strokeWidth="2" />
+            <line x1="134" y1="108" x2="158" y2="108" stroke="#1c2541" strokeWidth="2" />
+            <line x1="136" y1="116" x2="156" y2="116" stroke="#1c2541" strokeWidth="2" />
+            <text x="164" y="116" fontSize="9" fill="#1c2541" fontWeight="bold">C1 · 10µF</text>
+            <line x1="146" y1="116" x2="146" y2="174" stroke="#000" strokeWidth="2" />
+            {/* R3 to tap */}
+            <polyline points="146,80 152,72 160,88 168,72 176,88 184,72 192,80" stroke="#1c2541" strokeWidth="2" fill="none" />
+            <text x="168" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R3 · 22kΩ</text>
+            <line x1="192" y1="80" x2="216" y2="80" stroke="#e63946" strokeWidth="2" />
+            <circle cx="216" cy="80" r="2.8" fill="#1c2541" />
+            {/* R4 down to GND */}
+            <line x1="216" y1="80" x2="216" y2="104" stroke="#1c2541" strokeWidth="2" />
+            <polyline points="216,104 208,110 224,118 208,126 224,134 208,142 216,148" stroke="#1c2541" strokeWidth="2" fill="none" />
+            <text x="232" y="128" fontSize="9" fill="#1c2541" fontWeight="bold">R4 · 10kΩ</text>
+            <line x1="216" y1="148" x2="216" y2="174" stroke="#000" strokeWidth="2" />
+            {/* tap to CH1 */}
+            <line x1="216" y1="80" x2="296" y2="80" stroke="#e63946" strokeWidth="2" />
+            <text x="332" y="84" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH1</text>
+            {/* motor − to GND */}
+            <line x1="44" y1="108" x2="44" y2="174" stroke="#000" strokeWidth="2" />
+            <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
+            <polygon points="316,174 324,174 320,182" fill="#000" />
+            <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
+          </svg>
+          <p className="ckt-note">D2 only lets the positive half of the motor's wobbly voltage through. C1 smooths the bumps. R3 + R4 divide it down so spikes never exceed 3.3V.</p>
+        </div>
+
+        {/* Heat */}
+        <div className="circuit-card">
+          <h4>🔥 Heat → CH2 (transistor amp)</h4>
+          <svg viewBox="0 0 360 220">
+            <line x1="36" y1="22" x2="320" y2="22" stroke="#e63946" strokeWidth="2" />
+            <text x="14" y="26" fontSize="10" fill="#1c2541" fontWeight="bold">3V3</text>
+            <rect x="14" y="100" width="64" height="40" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.5" />
+            <text x="46" y="124" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Peltier</text>
+            <text x="46" y="94" textAnchor="middle" fontSize="9" fill="#1c2541">hot ↔ cold</text>
+            <line x1="78" y1="110" x2="106" y2="110" stroke="#e63946" strokeWidth="2" />
+            <polygon points="106,102 106,118 120,110" fill="#1c2541" />
+            <line x1="120" y1="102" x2="120" y2="118" stroke="#1c2541" strokeWidth="2" />
+            <text x="113" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D3 · 1N4148</text>
+            <line x1="120" y1="110" x2="142" y2="110" stroke="#e63946" strokeWidth="2" />
+            <polyline points="142,110 148,102 156,118 164,102 172,118 180,110" stroke="#1c2541" strokeWidth="2" fill="none" />
+            <text x="160" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R5 · 10kΩ</text>
+            <line x1="180" y1="110" x2="222" y2="110" stroke="#1c2541" strokeWidth="2" />
+            <circle cx="246" cy="110" r="20" fill="none" stroke="#1c2541" strokeWidth="2" />
+            <line x1="222" y1="110" x2="234" y2="110" stroke="#1c2541" strokeWidth="2" />
+            <line x1="234" y1="96" x2="234" y2="124" stroke="#1c2541" strokeWidth="3" />
+            <line x1="234" y1="96" x2="252" y2="86" stroke="#1c2541" strokeWidth="2" />
+            <line x1="252" y1="86" x2="252" y2="22" stroke="#1c2541" strokeWidth="2" />
+            <line x1="234" y1="124" x2="252" y2="134" stroke="#1c2541" strokeWidth="2" />
+            <polygon points="244,130 254,136 246,128" fill="#1c2541" />
+            <line x1="252" y1="134" x2="252" y2="186" stroke="#000" strokeWidth="2" />
+            <text x="282" y="114" fontSize="10" fill="#1c2541" fontWeight="bold">Q1 · 2N3904</text>
+            <text x="282" y="128" fontSize="9" fill="#1c2541">(B-C-E)</text>
+            <polyline points="252,22 244,30 260,38 244,46 260,54 244,62 252,70" stroke="#1c2541" strokeWidth="2" fill="none" transform="translate(0,0)" />
+            <text x="278" y="48" fontSize="9" fill="#1c2541" fontWeight="bold">R6 · 1kΩ</text>
+            <circle cx="252" cy="78" r="2.8" fill="#1c2541" />
+            <line x1="252" y1="78" x2="296" y2="78" stroke="#e63946" strokeWidth="2" />
+            <text x="332" y="82" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH2</text>
+            <line x1="46" y1="140" x2="46" y2="186" stroke="#000" strokeWidth="2" />
+            <line x1="46" y1="186" x2="320" y2="186" stroke="#000" strokeWidth="2" />
+            <polygon points="316,186 324,186 320,194" fill="#000" />
+            <text x="328" y="192" fontSize="9" fill="#1c2541">GND</text>
+          </svg>
+          <p className="ckt-note">A Peltier tile only makes millivolts. Q1 (NPN) amplifies it — when the Peltier sees heat, Q1 turns on and the collector voltage drops, which CH2 reads. R5 limits base current, R6 is the collector load.</p>
+        </div>
+
+        {/* Lemon */}
+        <div className="circuit-card">
+          <h4>🍋 Lemon → CH3</h4>
+          <svg viewBox="0 0 360 200">
+            <ellipse cx="56" cy="104" rx="44" ry="28" fill="#fff5a5" stroke="#9ec96a" strokeWidth="2" />
+            <text x="56" y="70" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Lemon</text>
+            <rect x="28" y="96" width="6" height="22" fill="#aaa" stroke="#666" />
+            <text x="31" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Zn − nail</text>
+            <circle cx="84" cy="108" r="7" fill="#b87333" stroke="#7a4c1f" />
+            <text x="84" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Cu + coin</text>
+            <line x1="91" y1="108" x2="142" y2="108" stroke="#e63946" strokeWidth="2" />
+            <polygon points="142,100 142,116 156,108" fill="#1c2541" />
+            <line x1="156" y1="100" x2="156" y2="116" stroke="#1c2541" strokeWidth="2" />
+            <text x="149" y="92" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D4 · 1N4148</text>
+            <line x1="156" y1="108" x2="296" y2="108" stroke="#e63946" strokeWidth="2" />
+            <text x="332" y="112" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH3</text>
+            <line x1="31" y1="118" x2="31" y2="174" stroke="#000" strokeWidth="2" />
+            <line x1="31" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
+            <polygon points="316,174 324,174 320,182" fill="#000" />
+            <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
+          </svg>
+          <p className="ckt-note">A lemon battery only makes ~0.9V — already safe for the ADC. D4 just stops electricity flowing backwards if the wires get swapped.</p>
+        </div>
+      </div>
 
       <h3>Wire colour key</h3>
       <div className="wiring-legend">
@@ -832,30 +1107,41 @@ function WiringDiagram() {
             <span>{w.label}</span>
           </div>
         ))}
-        <div className="legend-item">
-          <span className="swatch" style={{ background: '#1c2541' }} />
-          <span>Signal wire to station (dashed)</span>
-        </div>
       </div>
 
-      <h3>Build it in 8 simple steps</h3>
+      <h3>Extra parts you'll need (on top of the four station bits)</h3>
+      <ul className="parts-list">
+        <li><strong>Resistors (¼ W):</strong> 2× 22kΩ (R1, R3), 3× 10kΩ (R2, R4, R5), 1× 1kΩ (R6)</li>
+        <li><strong>Diodes:</strong> 3× 1N4148 small-signal (D2, D3, D4), 1× 1N5817 Schottky (D1)</li>
+        <li><strong>Transistor:</strong> 1× 2N3904 NPN (Q1) for the Heat amplifier</li>
+        <li><strong>Capacitors:</strong> 1× 10µF electrolytic (C1), 1× 100nF ceramic (C0 decoupling cap)</li>
+      </ul>
+
+      <h3>Build it in 12 simple steps</h3>
       <ol className="steps">
         <li>Switch off the Pi and unplug the power cable. Safety first!</li>
-        <li>Plug the MCP3008 chip into the middle of the breadboard so its legs straddle the gap.</li>
-        <li>Run the <strong>red</strong> 3.3V wire from Pi pin 1 to the chip's VDD and VREF.</li>
-        <li>Run the <strong>black</strong> Ground wire from Pi pin 6 to the chip's AGND and DGND.</li>
-        <li>Connect SPI wires: <strong>yellow</strong> CLK (GPIO11) ➜ chip CLK, <strong>green</strong> MISO (GPIO9) ➜ chip DOUT, <strong>blue</strong> MOSI (GPIO10) ➜ chip DIN, <strong>purple</strong> CE0 (GPIO8) ➜ chip CS.</li>
-        <li>Wire each station's + to a chip channel: Sun ➜ CH0, Wind ➜ CH1, Heat ➜ CH2, Lemon ➜ CH3.</li>
-        <li>Wire each station's − to the breadboard's blue (−) rail, which goes back to Pi Ground.</li>
+        <li>Plug the MCP3008 into the middle of the breadboard so its legs straddle the gap. The notch (or dot) marks pin&nbsp;1.</li>
+        <li>Drop the 100nF decoupling cap (C0) so its legs reach MCP <strong>pin 16</strong> (VDD) and <strong>pin 14</strong> (AGND).</li>
+        <li><strong>Power:</strong> <em>red</em> wire from Pi <strong>pin 1</strong> (3V3) to MCP <strong>pin 16</strong> (VDD); add a short jumper from MCP pin 16 to MCP <strong>pin 15</strong> (VREF).</li>
+        <li><strong>Ground:</strong> <em>black</em> wire from Pi <strong>pin 6</strong> (GND) to MCP <strong>pin 9</strong> (DGND); short jumper from pin 9 to MCP <strong>pin 14</strong> (AGND).</li>
+        <li><strong>SPI:</strong> <em>yellow</em> Pi <strong>pin 23</strong> (SCLK/GPIO11) → MCP <strong>pin 13</strong> (CLK); <em>green</em> Pi <strong>pin 21</strong> (MISO/GPIO9) → MCP <strong>pin 12</strong> (DOUT); <em>blue</em> Pi <strong>pin 19</strong> (MOSI/GPIO10) → MCP <strong>pin 11</strong> (DIN); <em>purple</em> Pi <strong>pin 24</strong> (CE0/GPIO8) → MCP <strong>pin 10</strong> (CS).</li>
+        <li>Build the <strong>Sun</strong> circuit on the breadboard: panel + → R1 (22kΩ) → junction. From the junction: R2 (10kΩ) to GND, and D1 (1N5817, stripe pointing toward chip) to MCP <strong>pin 1</strong> (CH0). Panel − to GND.</li>
+        <li>Build the <strong>Wind</strong> circuit: motor + → D2 (1N4148) → junction with C1 (10µF, − stripe to GND) → R3 (22kΩ) → tap. From the tap: R4 (10kΩ) to GND, and a wire to MCP <strong>pin 2</strong> (CH1). Motor − to GND.</li>
+        <li>Build the <strong>Heat</strong> circuit: Peltier + → D3 (1N4148) → R5 (10kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</li>
+        <li>Build the <strong>Lemon</strong> circuit: copper coin → D4 (1N4148) → MCP <strong>pin 4</strong> (CH3). Zinc nail → GND.</li>
+        <li>Double-check every part letter (R1, D1, Q1…) against the diagram before powering on.</li>
         <li>Plug the Pi back in and run <code>energy_detective.py</code>. Watch the dashboard light up!</li>
       </ol>
 
       <div className="safety">
         <strong>Grown-up helper rules:</strong>
         <ul style={{ margin: '6px 0 0 18px' }}>
-          <li>Never plug anything bigger than 3.3V into the chip channels.</li>
-          <li>Lemon batteries are safe to touch but don't eat them after!</li>
-          <li>The Peltier can get warm — hold the heat side with a coin or a metal spoon, not bare fingers.</li>
+          <li>Never plug a station <em>directly</em> into a chip channel — always go through its protection circuit.</li>
+          <li>Diodes have a stripe on one end (the cathode). The stripe faces toward the chip / away from the source.</li>
+          <li>The 2N3904 transistor has a flat side. With the flat side facing you, the pins are <strong>E – B – C</strong>.</li>
+          <li>The electrolytic cap C1 has a "−" stripe on one side — that side goes to GND.</li>
+          <li>Lemon batteries are safe to touch but don't eat the lemon afterwards.</li>
+          <li>The Peltier can get warm — hold the hot side with a coin or metal spoon, not bare fingers.</li>
           <li>Always unplug the Pi before changing wires.</li>
         </ul>
       </div>
