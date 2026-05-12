@@ -1,0 +1,20 @@
+[Unit]
+Description=Energy Detectives - kids energy demo dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Adjust User and the two paths below to wherever you copied the project.
+# On modern Raspberry Pi OS the default user is usually the one created
+# during first-boot setup (often the name you gave it, not "pi").
+User=pi
+WorkingDirectory=/home/pi/energy-detective
+ExecStart=/usr/bin/python3 /home/pi/energy-detective/energy_detective.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

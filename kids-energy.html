@@ -441,9 +441,14 @@ function useLiveReadings() {
   const [readings, setReadings] = useState(() =>
     Object.fromEntries(STATIONS.map(s => [s.id, (s.range[0] + s.range[1]) / 2]))
   );
+  const [source, setSource] = useState('sim');
+
   useEffect(() => {
-    let raf;
-    const tick = () => {
+    let cancelled = false;
+    let timer = null;
+
+    const simStep = () => {
+      if (cancelled) return;
       setReadings(prev => {
         const next = { ...prev };
         STATIONS.forEach(s => {
@@ -451,16 +456,48 @@ function useLiveReadings() {
           const mid = (lo + hi) / 2;
           const wobble = (Math.random() - 0.5) * (hi - lo) * 0.18;
           const pulled = prev[s.id] + (mid - prev[s.id]) * 0.04 + wobble;
-          next[s.id] = Math.max(lo, Math.min(hi, pulled));
+          next[s.id] = clamp(pulled, lo, hi);
         });
         return next;
       });
-      raf = setTimeout(tick, 700);
+      timer = setTimeout(simStep, 700);
     };
-    tick();
-    return () => clearTimeout(raf);
+
+    const apiStep = async () => {
+      if (cancelled) return;
+      try {
+        const r = await fetch('/api/readings', { cache: 'no-store' });
+        if (!r.ok) throw new Error('http ' + r.status);
+        const j = await r.json();
+        if (cancelled) return;
+        setReadings(prev => {
+          const next = { ...prev };
+          STATIONS.forEach(s => {
+            if (typeof j[s.id] === 'number') next[s.id] = j[s.id];
+          });
+          return next;
+        });
+        setSource(j.source === 'spi' ? 'pi' : 'sim');
+        timer = setTimeout(apiStep, 500);
+      } catch {
+        if (cancelled) return;
+        setSource('sim');
+        simStep();
+      }
+    };
+
+    fetch('/api/readings', { cache: 'no-store' })
+      .then(r => {
+        if (cancelled) return;
+        if (r.ok) apiStep();
+        else simStep();
+      })
+      .catch(() => { if (!cancelled) simStep(); });
+
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
-  return readings;
+
+  return { readings, source };
 }
 
 function Bolt({ left, delay }) {
@@ -674,7 +711,7 @@ function StationCard({ station, value }) {
   );
 }
 
-function PresentationSlide({ readings }) {
+function PresentationSlide({ readings, source }) {
   const totalPct = useMemo(() => {
     const parts = STATIONS.map(s => {
       const [lo, hi] = s.range;
@@ -685,14 +722,18 @@ function PresentationSlide({ readings }) {
 
   return (
     <div className="slide">
-      <h2>Live Energy Dashboard <span className="live-tag">LIVE</span></h2>
+      <h2>Live Energy Dashboard <span className="live-tag">{source === 'pi' ? 'LIVE · Pi' : 'LIVE · sim'}</span></h2>
       <p style={{ marginTop: 0, opacity: 0.85 }}>
-        Pi Zero 2 W is reading the four stations and sending the values to this slide every second.
+        {source === 'pi'
+          ? 'Pi Zero 2 W is reading the four stations through the MCP3008 every half second.'
+          : 'Showing simulated values — open this page through the Pi server to see real station readings.'}
       </p>
 
       <div className="pi">
         <span className="dot" aria-label="online" />
-        <strong style={{ color: '#06d6a0' }}>raspberry-pi-zero-2 online</strong>
+        <strong style={{ color: source === 'pi' ? '#06d6a0' : '#ffd166' }}>
+          {source === 'pi' ? 'raspberry-pi-zero-2 online' : 'simulation mode'}
+        </strong>
         <span style={{ opacity: 0.8 }}>· MCP3008 ADC · SPI bus</span>
         <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: 999 }}>
           Total energy mix: {(totalPct * 100).toFixed(0)}%
@@ -1130,7 +1171,7 @@ function WiringDiagram() {
         <li>Build the <strong>Heat</strong> circuit: Peltier + → D3 (1N4148) → R5 (10kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</li>
         <li>Build the <strong>Lemon</strong> circuit: copper coin → D4 (1N4148) → MCP <strong>pin 4</strong> (CH3). Zinc nail → GND.</li>
         <li>Double-check every part letter (R1, D1, Q1…) against the diagram before powering on.</li>
-        <li>Plug the Pi back in and run <code>energy_detective.py</code>. Watch the dashboard light up!</li>
+        <li>Plug the Pi back in and run <code>python3 pi/energy_detective.py</code>. Then open <code>http://&lt;pi-ip&gt;:8080</code> on any phone or laptop on the same Wi-Fi (find the Pi's IP with <code>hostname -I</code> on the Pi). Watch the dashboard light up!</li>
       </ol>
 
       <div className="safety">
@@ -1160,7 +1201,7 @@ const TABS = [
 ];
 
 function App() {
-  const readings = useLiveReadings();
+  const { readings, source } = useLiveReadings();
   const [tab, setTab] = useState('overview');
   const station = STATIONS.find(s => s.id === tab);
 
@@ -1229,7 +1270,7 @@ function App() {
       )}
 
       {tab === 'slide' && (
-        <PresentationSlide readings={readings} />
+        <PresentationSlide readings={readings} source={source} />
       )}
 
       {station && (
