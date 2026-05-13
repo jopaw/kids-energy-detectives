@@ -114,19 +114,20 @@ def _resolve_html_path() -> Path | None:
 
 
 def sampler_loop() -> None:
-    spi = _open_spi() if HAVE_SPI else None
+    if not HAVE_SPI:
+        raise RuntimeError(
+            "spidev is not installed. Install it with `sudo apt install python3-spidev` "
+            "(this server runs in live mode only — no simulation)."
+        )
+    spi = _open_spi()
     while True:
         snapshot = {}
         for name, cfg in STATIONS.items():
-            if spi is not None:
-                try:
-                    raw = _read_mcp3008(spi, cfg["channel"])
-                    volts = (raw / ADC_MAX) * VREF
-                except OSError:
-                    volts = 0.0
-            else:
-                t = time.monotonic() + cfg["channel"] * 0.7
-                volts = 1.0 + 0.4 * ((t % 2.0) - 1.0)
+            try:
+                raw = _read_mcp3008(spi, cfg["channel"])
+                volts = (raw / ADC_MAX) * VREF
+            except OSError:
+                volts = 0.0
             snapshot[name] = round(volts * cfg["scale"], 3)
         with _readings_lock:
             _readings.update(snapshot)
@@ -165,6 +166,36 @@ VENDOR_FILES = {
 }
 
 
+def render_wifi_qr_svg() -> bytes:
+    """Return an SVG QR code that joins the AP when scanned by a phone camera.
+
+    Encodes the standard WIFI:T:WPA;S:<ssid>;P:<password>;; payload that iOS,
+    Android and recent macOS recognise as a Wi-Fi join request.
+    """
+    payload = (
+        f"WIFI:T:WPA;S:{RUNTIME['ap_ssid']};P:{RUNTIME['ap_password']};;"
+    )
+    try:
+        import qrcode
+        import qrcode.image.svg
+        import io
+        factory = qrcode.image.svg.SvgPathImage
+        img = qrcode.make(payload, image_factory=factory, box_size=10, border=2)
+        buf = io.BytesIO()
+        img.save(buf)
+        return buf.getvalue()
+    except ImportError:
+        # Fallback if python3-qrcode isn't installed yet.
+        msg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">'
+            '<rect width="200" height="200" fill="#fafaf2" stroke="#888"/>'
+            '<text x="100" y="92" font-family="sans-serif" font-size="11" text-anchor="middle" fill="#444">QR library not installed</text>'
+            '<text x="100" y="112" font-family="sans-serif" font-size="10" text-anchor="middle" fill="#666">sudo apt install python3-qrcode</text>'
+            '</svg>'
+        )
+        return msg.encode("utf-8")
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "EnergyDetective/1.0"
 
@@ -192,7 +223,7 @@ class Handler(BaseHTTPRequestHandler):
             with _readings_lock:
                 payload = dict(_readings)
             payload["ts"] = time.time()
-            payload["source"] = "spi" if HAVE_SPI else "simulated"
+            payload["source"] = "spi"
             return self._send(200, json.dumps(payload).encode("utf-8"),
                               "application/json")
 
@@ -209,6 +240,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/api/health":
             return self._send(200, b'{"ok":true}', "application/json")
+
+        if path == "/api/wifi-qr.svg":
+            return self._send(200, render_wifi_qr_svg(), "image/svg+xml; charset=utf-8")
 
         if path.startswith("/vendor/"):
             name = path[len("/vendor/"):]
@@ -270,14 +304,15 @@ def main() -> None:
     RUNTIME["captive"]     = args.captive
 
     if not HAVE_SPI:
-        print("[warn] spidev not installed - running in simulation mode "
-              "(sudo apt install python3-spidev to enable real readings)")
+        print("[error] spidev is not installed; this server is live-mode only.")
+        print("        Install it with:  sudo apt install python3-spidev")
+        sys.exit(1)
     threading.Thread(target=sampler_loop, daemon=True).start()
 
     srv, bound_port = _bind(args.port)
     html_path = _resolve_html_path()
     print(f"Energy Detective server: http://{HOST}:{bound_port}")
-    print(f"  Mode:   {'SPI (real Pi)' if HAVE_SPI else 'simulation'}")
+    print(f"  Mode:   live (MCP3008 over SPI)")
     print(f"  HTML:   {html_path if html_path else 'NOT FOUND - drop kids-energy.html beside this script'}")
     print(f"  Hotspot Wi-Fi: SSID={RUNTIME['ap_ssid']!r}  password={RUNTIME['ap_password']!r}  ip={RUNTIME['ap_ip']}")
     if VENDOR_DIR.is_dir():

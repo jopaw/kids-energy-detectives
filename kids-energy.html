@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Energy Detectives! — A Raspberry Pi Kids Project</title>
+<title>Vidyuth's Energy Detectives — A Raspberry Pi Kids Project</title>
 <meta name="description" content="A fun, kid-friendly STEM project that turns a Raspberry Pi Zero 2 into an Energy Detective with 4 hands-on stations: Sun, Wind, Heat and Lemon power." />
 
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
@@ -256,6 +256,32 @@
   .ckt-note { font-size: 0.88rem; color: var(--ink-soft); margin: 8px 0 0; }
   .parts-list li { margin-bottom: 4px; }
 
+  .operate-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 18px;
+    display: grid;
+    gap: 10px;
+  }
+  .operate-bullets li {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    align-items: start;
+    background: #faf7ee;
+    border-left: 6px solid #06d6a0;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    line-height: 1.45;
+  }
+  .operate-bullets .bullet-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    text-align: center;
+  }
+  .operate-bullets .bullet-text { font-size: 0.96rem; }
+  .operate-bullets .bullet-text strong { color: #1c2541; }
+
   .connect-card {
     background: linear-gradient(135deg, #fff3a8, #ffd166, #ffb703);
     color: #1c2541;
@@ -299,6 +325,27 @@
     font-size: 0.95rem;
   }
   .connect-steps li::marker { color: #ff6b6b; }
+
+  .connect-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: start;
+  }
+  .connect-info { min-width: 0; }
+  .qr-block {
+    background: #fff;
+    border: 3px solid #1c2541;
+    border-radius: var(--radius-md);
+    padding: 10px;
+    text-align: center;
+    align-self: start;
+  }
+  .qr-block img { display: block; width: 180px; height: 180px; }
+  .qr-caption { margin-top: 6px; font-size: 0.9rem; font-weight: bold; color: #1c2541; }
+  @media (max-width: 720px) {
+    .connect-row { grid-template-columns: 1fr; justify-items: center; }
+  }
 
   .steps { counter-reset: step; padding-left: 0; list-style: none; }
   .steps li {
@@ -420,11 +467,11 @@ const STATIONS = [
     color: '#ffb703',
     blurb: 'A solar panel catches sunlight and pushes tiny electrons through wires. The Pi reads the voltage and shows how bright the day is!',
     operate: [
-      'Stand the panel up with its shiny black side facing the brightest light in the room.',
-      'Watch the Sun reading on the dashboard climb up. 📈',
-      'Cover the panel with your hand — the reading drops back toward zero.',
-      'Point a phone flashlight straight at it from 5 cm away for the biggest jump.',
-      'Tilt the panel left and right — find the angle that gives the highest number.',
+      { icon: '🔆', text: <><strong>Aim for the brightest light.</strong> Point the panel's shiny black side straight at a lamp, the sun through a window, or a phone torch. The brighter the light, the more electrons the silicon cells knock free — so the bigger the reading on the dashboard.</> },
+      { icon: '🤚', text: <><strong>Block the light with your hand.</strong> The reading drops to almost zero in less than a second. The cells stop catching photons the moment they're in shadow.</> },
+      { icon: '📐', text: <><strong>Hunt for the best angle.</strong> Tilt the panel slowly forward and back. Light hitting straight on (90°) gives the highest voltage; angled light just bounces away.</> },
+      { icon: '🎨', text: <><strong>Try filters.</strong> Hold coloured paper or sunglasses between the light and the panel. Some colours block more light, so the number falls — your panel can "see" which colours have more energy.</> },
+      { icon: '🏠', text: <><strong>Indoor vs outdoor.</strong> Walk outside on a sunny day and compare. The Sun puts out about 100 times more power per square metre than a room lamp!</> },
     ],
     examples: [
       { title: 'Solar Farm', why: 'Big fields of panels power whole towns.', anim: 'SolarFarm' },
@@ -445,11 +492,11 @@ const STATIONS = [
     color: '#56cfe1',
     blurb: 'Spinning blades turn a motor backwards — it becomes a tiny generator. Faster spinning = more electricity!',
     operate: [
-      'Push a small paper or plastic propeller onto the motor’s metal shaft.',
-      'Spin the blade once with your finger — a tiny voltage pulse appears.',
-      'Blow hard on the blade — the dashboard jumps as it spins.',
-      'Try a hair dryer on the COOL setting from about 30 cm away.',
-      'The faster the blade spins, the bigger the number. Stop spinning and watch it fall back to zero.',
+      { icon: '🪁', text: <><strong>Fit a propeller to the motor shaft.</strong> A paper fan, a plastic prop, or even a taped-on folded Post-it works. The motor only makes electricity when something spins the shaft.</> },
+      { icon: '🌀', text: <><strong>Flick and watch.</strong> Spin the blade once with your finger and let it coast. You'll see the dashboard spike up, then slowly fall as the blade slows down — that's the motor turning kinetic energy into electrical energy.</> },
+      { icon: '💨', text: <><strong>Try real wind.</strong> Blow on the blade from about 10 cm away, or use a hair dryer on its <em>COLD</em> setting (never hot — plastic blades can melt). The harder the wind, the higher the number.</> },
+      { icon: '↩️', text: <><strong>Direction matters!</strong> Spin the motor the opposite way and the voltage flips negative. The protection diode (D2) only lets one direction through, so the dashboard might read zero when spinning backwards.</> },
+      { icon: '🎢', text: <><strong>Race a friend.</strong> Take turns spinning the blade as fast as you can and see who scores the highest peak on the graph!</> },
     ],
     examples: [
       { title: 'Wind Turbine',  why: 'Giant blades spin a generator on a hill.', anim: 'WindTurbine' },
@@ -470,11 +517,11 @@ const STATIONS = [
     color: '#ff6b6b',
     blurb: 'A Peltier tile makes electricity when one side is warm and the other is cool. Even a warm hand can power an LED!',
     operate: [
-      'Pinch one side of the Peltier tile between your warm fingers for 10–15 seconds.',
-      'Watch the Heat reading climb as one side warms up.',
-      'Let go — the value drops back toward zero as the two sides match temperature again.',
-      'Place a warm metal spoon (just out of warm water) on top while the cool table sits under the bottom — biggest jump.',
-      'Flip the tile over — the voltage flips direction too! (The transistor amplifier turns this into a bigger or smaller reading.)',
+      { icon: '🤝', text: <><strong>Warm one side with a finger.</strong> Pinch one face of the Peltier tile between your warm fingers for 10–15 seconds. Heat flows from your finger, through the ceramic, into the other side.</> },
+      { icon: '🌡️', text: <><strong>It's the gap that matters.</strong> A Peltier doesn't care how warm the whole tile is — only the <em>difference</em> between top and bottom. A small difference = small voltage. A big difference = big voltage.</> },
+      { icon: '🥄', text: <><strong>Try a warm spoon.</strong> Dip a metal spoon in warm (not hot) water, dry it, and rest it on top of the tile. The big temperature difference between spoon and table makes the dashboard jump.</> },
+      { icon: '🧊', text: <><strong>Add ice for a giant jump.</strong> Place an ice cube on one side and a warm spoon on the other for the biggest reading you can get.</> },
+      { icon: '🔄', text: <><strong>Flip the tile over.</strong> Swap which side is hot and which is cold — the voltage flips polarity! The transistor amplifier turns this into either a very small or very large reading on the dashboard.</> },
     ],
     examples: [
       { title: 'Power Plant',   why: 'Heat makes steam, steam spins turbines.', anim: 'PowerPlant' },
@@ -495,11 +542,12 @@ const STATIONS = [
     color: '#9ec96a',
     blurb: 'Lemon juice + a zinc nail + a copper coin = a soft chemical battery. Electrons take a juicy shortcut through the wire!',
     operate: [
-      'Roll the lemon firmly on the table while pressing down — this breaks the juice cells inside.',
-      'Push the zinc nail about 2 cm into one side of the lemon.',
-      'Push the copper coin about 2 cm into the other side, making sure the metals don’t touch inside the lemon.',
-      'Wait about 5 seconds for the chemistry to start, then watch the Lemon reading.',
-      'Try the same trick with a potato, an orange, or a small cup of salty water — they all work!',
+      { icon: '🍋', text: <><strong>Juice it up first.</strong> Roll the lemon firmly on the table while pressing down. This crushes the juice cells inside so the acidic liquid can flow between the metals.</> },
+      { icon: '🔩', text: <><strong>Push the zinc nail in about 2 cm</strong> on one side of the lemon. Zinc atoms are loose with their outer electrons — they happily give them away when the acid attacks the metal.</> },
+      { icon: '🪙', text: <><strong>Push the copper coin in about 2 cm away from the nail.</strong> The two metals must NOT touch each other inside the lemon — the lemon's acid HAS to be in between for the chemistry to work.</> },
+      { icon: '⏱️', text: <><strong>Wait about 5 seconds.</strong> The chemical reaction needs a moment to start. A single lemon should give about 0.9 V — not a lot, but real electricity made from fruit!</> },
+      { icon: '🥔', text: <><strong>Try other juicy things.</strong> A potato, an orange, even a small cup of salty water all work. Anything with electrolytes (charged particles dissolved in water) can be a battery.</> },
+      { icon: '🔗', text: <><strong>Chain them together.</strong> Connect the copper of one lemon to the zinc of another with a wire and you can stack the voltages. Two lemons in series ≈ 1.8 V.</> },
     ],
     examples: [
       { title: 'Phone Battery', why: 'Lithium chemistry powers your phone.',   anim: 'PhoneBattery' },
@@ -509,33 +557,22 @@ const STATIONS = [
   },
 ];
 
+const HISTORY_LENGTH = 60;  // ~30 s at 500 ms per sample — used by the time-series graph
+
 function useLiveReadings() {
   const [readings, setReadings] = useState(() =>
-    Object.fromEntries(STATIONS.map(s => [s.id, (s.range[0] + s.range[1]) / 2]))
+    Object.fromEntries(STATIONS.map(s => [s.id, 0]))
   );
-  const [source, setSource] = useState('sim');
+  const [source, setSource] = useState('offline');
+  const [history, setHistory] = useState(() =>
+    Object.fromEntries(STATIONS.map(s => [s.id, []]))
+  );
 
   useEffect(() => {
     let cancelled = false;
     let timer = null;
 
-    const simStep = () => {
-      if (cancelled) return;
-      setReadings(prev => {
-        const next = { ...prev };
-        STATIONS.forEach(s => {
-          const [lo, hi] = s.range;
-          const mid = (lo + hi) / 2;
-          const wobble = (Math.random() - 0.5) * (hi - lo) * 0.18;
-          const pulled = prev[s.id] + (mid - prev[s.id]) * 0.04 + wobble;
-          next[s.id] = clamp(pulled, lo, hi);
-        });
-        return next;
-      });
-      timer = setTimeout(simStep, 700);
-    };
-
-    const apiStep = async () => {
+    const step = async () => {
       if (cancelled) return;
       try {
         const r = await fetch('/api/readings', { cache: 'no-store' });
@@ -549,27 +586,31 @@ function useLiveReadings() {
           });
           return next;
         });
-        setSource(j.source === 'spi' ? 'pi' : 'sim');
-        timer = setTimeout(apiStep, 500);
+        setHistory(prev => {
+          const next = { ...prev };
+          STATIONS.forEach(s => {
+            if (typeof j[s.id] === 'number') {
+              const arr = (prev[s.id] || []).concat(j[s.id]);
+              if (arr.length > HISTORY_LENGTH) arr.splice(0, arr.length - HISTORY_LENGTH);
+              next[s.id] = arr;
+            }
+          });
+          return next;
+        });
+        setSource('pi');
+        timer = setTimeout(step, 500);
       } catch {
         if (cancelled) return;
-        setSource('sim');
-        simStep();
+        setSource('offline');
+        timer = setTimeout(step, 3000);  // back off and retry when the Pi isn't reachable
       }
     };
 
-    fetch('/api/readings', { cache: 'no-store' })
-      .then(r => {
-        if (cancelled) return;
-        if (r.ok) apiStep();
-        else simStep();
-      })
-      .catch(() => { if (!cancelled) simStep(); });
-
+    step();
     return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
-  return { readings, source };
+  return { readings, source, history };
 }
 
 function Bolt({ left, delay }) {
@@ -794,17 +835,17 @@ function PresentationSlide({ readings, source }) {
 
   return (
     <div className="slide">
-      <h2>Live Energy Dashboard <span className="live-tag">{source === 'pi' ? 'LIVE · Pi' : 'LIVE · sim'}</span></h2>
+      <h2>Live Energy Dashboard <span className="live-tag">{source === 'pi' ? 'LIVE' : 'WAITING'}</span></h2>
       <p style={{ marginTop: 0, opacity: 0.85 }}>
         {source === 'pi'
           ? 'Pi Zero 2 W is reading the four stations through the MCP3008 every half second.'
-          : 'Showing simulated values — open this page through the Pi server to see real station readings.'}
+          : 'Waiting for the Pi… make sure the Pi is on, you are connected to its Wi-Fi, and you opened http://energy.local.'}
       </p>
 
       <div className="pi">
         <span className="dot" aria-label="online" />
-        <strong style={{ color: source === 'pi' ? '#06d6a0' : '#ffd166' }}>
-          {source === 'pi' ? 'raspberry-pi-zero-2 online' : 'simulation mode'}
+        <strong style={{ color: source === 'pi' ? '#06d6a0' : '#ef476f' }}>
+          {source === 'pi' ? 'raspberry-pi-zero-2 online' : 'no Pi connection — retrying…'}
         </strong>
         <span style={{ opacity: 0.8 }}>· MCP3008 ADC · SPI bus</span>
         <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: 999 }}>
@@ -836,7 +877,62 @@ function PresentationSlide({ readings, source }) {
   );
 }
 
-function StationDetail({ station, value }) {
+function TimeSeriesGraph({ data, color, unit, min, max }) {
+  const W = 480, H = 160;
+  const PAD_L = 46, PAD_R = 14, PAD_T = 14, PAD_B = 24;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  if (!data || data.length < 2) {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', background: '#fafaf2', borderRadius: 8 }}>
+        <text x={W/2} y={H/2} textAnchor="middle" fill="#888" fontSize="13">
+          waiting for samples from the Pi…
+        </text>
+      </svg>
+    );
+  }
+
+  const N = data.length;
+  const lo = Math.min(min, ...data);
+  const hi = Math.max(max, ...data, lo + 0.001);
+  const xMap = (i) => PAD_L + (((HISTORY_LENGTH - N) + i) / (HISTORY_LENGTH - 1)) * innerW;
+  const yMap = (v) => PAD_T + innerH - ((v - lo) / (hi - lo)) * innerH;
+
+  const points = data.map((v, i) => `${xMap(i).toFixed(1)},${yMap(v).toFixed(1)}`).join(' ');
+  const lastX = xMap(N - 1);
+  const lastY = yMap(data[N - 1]);
+
+  const ticks = Array.from({ length: 5 }, (_, i) => lo + (i / 4) * (hi - lo));
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', background: '#fafaf2', borderRadius: 8 }}>
+      {ticks.map((v, i) => {
+        const yy = yMap(v);
+        return (
+          <g key={i}>
+            <line x1={PAD_L} y1={yy} x2={W - PAD_R} y2={yy} stroke="#e3e0d2" strokeDasharray="3 4" />
+            <text x={PAD_L - 6} y={yy + 3} textAnchor="end" fontSize="9" fill="#888">
+              {formatReading(v, unit)}
+            </text>
+          </g>
+        );
+      })}
+      <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={H - PAD_B} stroke="#bbb" />
+      <line x1={PAD_L} y1={H - PAD_B} x2={W - PAD_R} y2={H - PAD_B} stroke="#bbb" />
+      <polygon points={`${xMap(0)},${H - PAD_B} ${points} ${lastX},${H - PAD_B}`}
+        fill={color} fillOpacity="0.18" />
+      <polyline points={points} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={lastX} cy={lastY} r="4" fill={color} stroke="#fff" strokeWidth="1.5" />
+      <text x={(PAD_L + W - PAD_R) / 2} y={H - 6} textAnchor="middle" fontSize="10" fill="#666">
+        last {Math.round(HISTORY_LENGTH * 0.5)} seconds  →  newest on the right
+      </text>
+      <text x={6} y={PAD_T + 4} fontSize="10" fill="#666">{unit}</text>
+    </svg>
+  );
+}
+
+function StationDetail({ station, value, history }) {
   return (
     <div className="card">
       <h2>{station.emoji} {station.name}</h2>
@@ -847,12 +943,25 @@ function StationDetail({ station, value }) {
           {formatReading(value, station.unit)} {station.unit}
         </span>
       </div>
+      <h3>📊 Voltage over the last {Math.round(HISTORY_LENGTH * 0.5)} seconds</h3>
+      <TimeSeriesGraph
+        data={history}
+        color={station.color}
+        unit={station.unit}
+        min={station.range[0]}
+        max={station.range[1]}
+      />
       {station.operate && (
         <>
-          <h3>How to make this station work 🎛️</h3>
-          <ol className="steps">
-            {station.operate.map((step, i) => <li key={i}>{step}</li>)}
-          </ol>
+          <h3>How to use this station 🎛️</h3>
+          <ul className="operate-bullets">
+            {station.operate.map((step, i) => (
+              <li key={i}>
+                <span className="bullet-icon">{step.icon}</span>
+                <span className="bullet-text">{step.text}</span>
+              </li>
+            ))}
+          </ul>
         </>
       )}
       <h3>3 Real-Life Examples</h3>
@@ -906,8 +1015,9 @@ const MCP_PIN_NAMES = {
   1:'CH0', 2:'CH1', 3:'CH2', 4:'CH3', 5:'CH4', 6:'CH5', 7:'CH6', 8:'CH7',
   9:'DGND', 10:'CS', 11:'DIN', 12:'DOUT', 13:'CLK', 14:'AGND', 15:'VREF', 16:'VDD',
 };
-const MCP_LEFT_PINS  = [16, 15, 14, 13, 12, 11, 10, 9];
-const MCP_RIGHT_PINS = [1, 2, 3, 4, 5, 6, 7, 8];
+// Physical chip orientation: CH0-CH7 on the left of the chip, VDD..DGND on the right.
+const MCP_LEFT_PINS  = [1, 2, 3, 4, 5, 6, 7, 8];
+const MCP_RIGHT_PINS = [16, 15, 14, 13, 12, 11, 10, 9];
 
 function WiringDiagram() {
   const wires = [
@@ -919,16 +1029,18 @@ function WiringDiagram() {
     { color: '#b5179e', label: 'Purple — SPI CE0 (Pi pin 24 / GPIO8)' },
   ];
 
-  const PIN_X_L = 220, PIN_X_R = 248, PIN_TOP = 96, PIN_DY = 34, PIN_W = 22, PIN_H = 20;
+  // Pi sits on the right side of the diagram so its left edge faces the chip.
+  const PIN_X_L = 560, PIN_X_R = 588, PIN_TOP = 80, PIN_DY = 34, PIN_W = 22, PIN_H = 20;
   const pinPos = (n) => {
     const pair = Math.ceil(n / 2);
     const isLeft = n % 2 === 1;
     const x = isLeft ? PIN_X_L : PIN_X_R;
     const y = PIN_TOP + (pair - 1) * PIN_DY;
-    return { x, y, cy: y + PIN_H / 2, rightEdge: x + PIN_W };
+    return { x, y, cy: y + PIN_H / 2, leftEdge: x, rightEdge: x + PIN_W };
   };
 
-  const MCP_X = 480, MCP_Y = 150, MCP_W = 140, MCP_H = 320;
+  // Chip in the middle of the diagram, physical-orientation (notch top, CH on left, SPI on right).
+  const MCP_X = 320, MCP_Y = 150, MCP_W = 140, MCP_H = 320;
   const mcpPos = (n) => {
     const onLeft = n >= 9;
     const order = onLeft ? MCP_LEFT_PINS : MCP_RIGHT_PINS;
@@ -940,7 +1052,7 @@ function WiringDiagram() {
   const wirePath = (piPin, mcpPin, color) => {
     const p = pinPos(piPin);
     const m = mcpPos(mcpPin);
-    const startX = p.rightEdge;
+    const startX = p.leftEdge;  // Pi pin's left edge faces the chip on its left
     const midX = (startX + m.x) / 2;
     return (
       <path key={`${piPin}-${mcpPin}`}
@@ -1005,31 +1117,31 @@ function WiringDiagram() {
 
       <h3>Pi GPIO header ↔ MCP3008 connections (schematic — see physical pinout above)</h3>
       <svg viewBox="0 0 760 820" style={{ width: '100%', height: 'auto', background: '#fbfaf3', borderRadius: 18 }}>
-        {/* Pi board background */}
-        <rect x="20" y="60" width="190" height="750" rx="14" fill="#0f5132" />
-        <text x="115" y="84" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">Raspberry Pi Zero 2 W</text>
-        <rect x="40" y="100" width="80" height="58" fill="#222" />
-        <text x="80" y="133" textAnchor="middle" fill="#fff" fontSize="11">BCM2710</text>
-        <rect x="40" y="170" width="50" height="32" fill="#444" />
-        <text x="65" y="190" textAnchor="middle" fill="#fff" fontSize="9">SD card</text>
-        <rect x="135" y="770" width="60" height="22" rx="3" fill="#222" />
-        <text x="165" y="785" textAnchor="middle" fontSize="9" fill="#fff">micro-USB</text>
-        <text x={PIN_X_L - 14} y={PIN_TOP - 6} fontSize="9" fill="#ffd166" fontWeight="bold">↓ pin 1 (corner near SD)</text>
-        <text x="115" y="800" textAnchor="middle" fontSize="9" fill="#ffd166" fontStyle="italic">all 40 GPIO pins shown</text>
+        {/* Pi board background (on the right side of the diagram so its 40-pin header faces the chip) */}
+        <rect x="540" y="50" width="200" height="760" rx="14" fill="#0f5132" />
+        <text x="640" y="74" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">Raspberry Pi Zero 2 W</text>
+        <rect x="630" y="100" width="86" height="58" fill="#222" />
+        <text x="673" y="133" textAnchor="middle" fill="#fff" fontSize="11">BCM2710</text>
+        <rect x="630" y="170" width="56" height="32" fill="#444" />
+        <text x="658" y="190" textAnchor="middle" fill="#fff" fontSize="9">SD card</text>
+        <rect x="630" y="780" width="60" height="22" rx="3" fill="#222" />
+        <text x="660" y="795" textAnchor="middle" fontSize="9" fill="#fff">micro-USB</text>
+        <text x={PIN_X_L} y={PIN_TOP - 8} fontSize="9" fill="#ffd166" fontWeight="bold">↓ pin 1 (top corner)</text>
+        <text x="640" y="810" textAnchor="middle" fontSize="9" fill="#ffd166" fontStyle="italic">all 40 GPIO pins shown</text>
 
         {/* Wires drawn first so pin squares sit on top */}
         {wirePath(1, 16, '#e63946')}
-        {/* VDD → VREF jumper inside chip side */}
+        {/* VDD ↔ VREF jumper on the chip's right side */}
         <g>
-          <circle cx={MCP_X - 18} cy={VDDy} r="3" fill="#e63946" />
-          <path d={`M ${MCP_X} ${VDDy} L ${MCP_X - 18} ${VDDy} L ${MCP_X - 18} ${VREFy} L ${MCP_X} ${VREFy}`}
+          <circle cx={MCP_X + MCP_W + 18} cy={VDDy} r="3" fill="#e63946" />
+          <path d={`M ${MCP_X + MCP_W} ${VDDy} L ${MCP_X + MCP_W + 18} ${VDDy} L ${MCP_X + MCP_W + 18} ${VREFy} L ${MCP_X + MCP_W} ${VREFy}`}
             stroke="#e63946" strokeWidth="2.5" fill="none" />
         </g>
         {wirePath(6, 9, '#000')}
-        {/* DGND → AGND jumper */}
+        {/* DGND ↔ AGND jumper on the chip's right side */}
         <g>
-          <circle cx={MCP_X - 32} cy={DGNDy} r="3" fill="#000" />
-          <path d={`M ${MCP_X} ${DGNDy} L ${MCP_X - 32} ${DGNDy} L ${MCP_X - 32} ${AGNDy} L ${MCP_X} ${AGNDy}`}
+          <circle cx={MCP_X + MCP_W + 32} cy={DGNDy} r="3" fill="#000" />
+          <path d={`M ${MCP_X + MCP_W} ${DGNDy} L ${MCP_X + MCP_W + 32} ${DGNDy} L ${MCP_X + MCP_W + 32} ${AGNDy} L ${MCP_X + MCP_W} ${AGNDy}`}
             stroke="#000" strokeWidth="2.5" fill="none" />
         </g>
         {wirePath(23, 13, '#ffb703')}
@@ -1044,7 +1156,7 @@ function WiringDiagram() {
         <circle cx={MCP_X + MCP_W/2} cy={MCP_Y + 3} r="5" fill="#fbfaf3" />
         <text x={MCP_X + MCP_W/2 + 10} y={MCP_Y + 6} fontSize="8" fill="#fbfaf3">notch = top</text>
 
-        {/* MCP pins on left side (power + SPI), top to bottom: 16,15,14,13,12,11,10,9 */}
+        {/* MCP pins on left side (CH0-CH7, top to bottom) — physical chip orientation */}
         {MCP_LEFT_PINS.map(pin => {
           const p = mcpPos(pin);
           return (
@@ -1055,7 +1167,7 @@ function WiringDiagram() {
             </g>
           );
         })}
-        {/* MCP pins on right side (CH0-CH7), top to bottom */}
+        {/* MCP pins on right side (16 VDD → 9 DGND, top to bottom) — physical chip orientation */}
         {MCP_RIGHT_PINS.map(pin => {
           const p = mcpPos(pin);
           return (
@@ -1067,7 +1179,7 @@ function WiringDiagram() {
           );
         })}
 
-        {/* Station signal arrows on right side of MCP into CH0-CH3 */}
+        {/* Station signal arrows on the LEFT side of MCP pointing INTO CH0-CH3 */}
         {[
           { ch: 1, emoji: '☀️', name: 'Sun signal in' },
           { ch: 2, emoji: '💨', name: 'Wind signal in' },
@@ -1077,10 +1189,10 @@ function WiringDiagram() {
           const c = mcpPos(s.ch);
           return (
             <g key={s.ch}>
-              <line x1={c.x + 30} y1={c.y} x2={c.x + 110} y2={c.y} stroke="#1c2541" strokeWidth="2" />
-              <polygon points={`${c.x + 30},${c.y - 5} ${c.x + 30},${c.y + 5} ${c.x + 20},${c.y}`} fill="#1c2541" />
-              <text x={c.x + 116} y={c.y + 4} fontSize="11" fill="#1c2541" fontWeight="bold">{s.emoji} {s.name}</text>
-              <text x={c.x + 116} y={c.y + 16} fontSize="9" fill="#1c2541">(from circuit below)</text>
+              <line x1={c.x - 110} y1={c.y} x2={c.x - 20} y2={c.y} stroke="#1c2541" strokeWidth="2" />
+              <polygon points={`${c.x - 20},${c.y - 5} ${c.x - 20},${c.y + 5} ${c.x - 8},${c.y}`} fill="#1c2541" />
+              <text x={c.x - 116} y={c.y + 4} textAnchor="end" fontSize="11" fill="#1c2541" fontWeight="bold">{s.emoji} {s.name}</text>
+              <text x={c.x - 116} y={c.y + 16} textAnchor="end" fontSize="9" fill="#1c2541">(from circuit below)</text>
             </g>
           );
         })}
@@ -1332,7 +1444,7 @@ function useWifiInfo() {
 }
 
 function App() {
-  const { readings, source } = useLiveReadings();
+  const { readings, source, history } = useLiveReadings();
   const wifi = useWifiInfo();
   const [tab, setTab] = useState('overview');
   const station = STATIONS.find(s => s.id === tab);
@@ -1340,11 +1452,11 @@ function App() {
   return (
     <div className="wrap">
       <header className="hero">
-        <h1>⚡ Energy Detectives! ⚡</h1>
+        <h1>⚡ Vidyuth's Energy Detectives ⚡</h1>
         <p className="sub">
-          A super fun kids' project where a tiny <strong>Raspberry Pi Zero 2 W</strong> listens to
-          <strong> 4 energy stations</strong> and shows you how light, wind, heat and lemons can all
-          make electricity!
+          Get ready for some energy flowing in your mind. A super fun kids' project where a tiny
+          <strong> Raspberry Pi Zero 2 W</strong> listens to <strong>4 energy stations</strong> and
+          shows you how light, wind, heat and lemons can all make electricity!
         </p>
         <div className="badges">
           <span className="badge">Ages 9–12</span>
@@ -1368,25 +1480,33 @@ function App() {
             <div className="card connect-card">
               <h2>📶 Show your friends how to join!</h2>
               <p>This little Pi made its own Wi-Fi just for the experiment. Tell your friends to connect and the dashboard will pop up on their phone!</p>
-              <div className="wifi-creds">
-                <div className="field">
-                  <span className="lbl">Wi-Fi name</span>
-                  <span className="val">{wifi.ssid}</span>
+              <div className="connect-row">
+                <div className="connect-info">
+                  <div className="wifi-creds">
+                    <div className="field">
+                      <span className="lbl">Wi-Fi name</span>
+                      <span className="val">{wifi.ssid}</span>
+                    </div>
+                    <div className="field">
+                      <span className="lbl">Password</span>
+                      <span className="val">{wifi.password}</span>
+                    </div>
+                    <div className="field">
+                      <span className="lbl">Or open in a browser</span>
+                      <span className="val">http://{wifi.hostname || 'energy.local'}</span>
+                    </div>
+                  </div>
+                  <ol className="connect-steps">
+                    <li>1️⃣ On a phone, tablet or laptop, open <strong>Wi-Fi settings</strong>.</li>
+                    <li>2️⃣ Pick <strong>{wifi.ssid}</strong> and type the password <strong>{wifi.password}</strong> — or scan the QR code on the right with your camera and your phone offers to join automatically. 📲</li>
+                    <li>3️⃣ The dashboard should pop up by itself. If it doesn't, open a browser and go to <strong>http://{wifi.hostname || 'energy.local'}</strong> (or <strong>http://{wifi.ip}</strong>).</li>
+                  </ol>
                 </div>
-                <div className="field">
-                  <span className="lbl">Password</span>
-                  <span className="val">{wifi.password}</span>
-                </div>
-                <div className="field">
-                  <span className="lbl">Or open in a browser</span>
-                  <span className="val">http://{wifi.hostname || 'energy.local'}</span>
+                <div className="qr-block">
+                  <img src="/api/wifi-qr.svg" alt={`Scan to join ${wifi.ssid}`} width="180" height="180" />
+                  <div className="qr-caption">📷 Point your camera here to join</div>
                 </div>
               </div>
-              <ol className="connect-steps">
-                <li>1️⃣ On a phone, tablet or laptop, open <strong>Wi-Fi settings</strong>.</li>
-                <li>2️⃣ Pick <strong>{wifi.ssid}</strong> and type the password <strong>{wifi.password}</strong>.</li>
-                <li>3️⃣ The dashboard should pop up automatically. If it doesn't, open a browser and go to <strong>http://{wifi.hostname || 'energy.local'}</strong> (or <strong>http://{wifi.ip}</strong>).</li>
-              </ol>
             </div>
           )}
           <div className="card">
@@ -1431,7 +1551,7 @@ function App() {
       )}
 
       {station && (
-        <StationDetail station={station} value={readings[tab]} />
+        <StationDetail station={station} value={readings[tab]} history={history[tab] || []} />
       )}
 
       {tab === 'wiring' && <WiringDiagram />}

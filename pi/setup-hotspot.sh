@@ -165,8 +165,8 @@ systemctl enable "$SERVICE_NAME" >/dev/null
 ok "Service installed and enabled"
 
 # --- 5. mDNS so http://energy.local works ---
-say "Enabling avahi-daemon for http://energy.local"
-apt-get install -y avahi-daemon >/dev/null 2>&1 || warn "could not install avahi-daemon (will try existing one)"
+say "Installing avahi-daemon (for http://energy.local) and python3-qrcode (for the Wi-Fi QR code)"
+apt-get install -y avahi-daemon python3-qrcode >/dev/null 2>&1 || warn "apt install partly failed; mDNS and/or the QR code may be unavailable"
 hostnamectl set-hostname energy 2>/dev/null || true
 systemctl enable --now avahi-daemon >/dev/null 2>&1 || warn "avahi-daemon not available — energy.local may not resolve"
 ok "mDNS set up — Pi hostname is now 'energy'"
