@@ -73,6 +73,49 @@
   }
 
   /* Tabs */
+  html { scroll-behavior: smooth; }
+  section[id] { scroll-margin-top: 80px; }
+
+  .sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px 8px;
+    background: rgba(255, 254, 251, 0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-bottom: 2px solid rgba(28, 37, 65, 0.08);
+    margin: 8px -8px 16px;
+  }
+  .sticky-nav a {
+    text-decoration: none;
+    color: var(--ink);
+    font-weight: bold;
+    font-size: 0.95rem;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: white;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 6px rgba(28,37,65,0.08);
+    transition: transform .1s, border-color .15s;
+  }
+  .sticky-nav a:hover { transform: translateY(-1px); border-color: #ffb703; }
+
+  .section-heading {
+    text-align: center;
+    margin: 36px 0 6px;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    background: linear-gradient(90deg, #ff6b6b, #ffb703, #06d6a0, #4cc9f0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .section-sub { text-align: center; margin: 0 auto 14px; max-width: 640px; color: var(--ink-soft); }
+
   .tabs {
     display: flex;
     gap: 8px;
@@ -255,6 +298,40 @@
   .circuit-card svg { width: 100%; height: auto; background: #fff; border-radius: 10px; }
   .ckt-note { font-size: 0.88rem; color: var(--ink-soft); margin: 8px 0 0; }
   .parts-list li { margin-bottom: 4px; }
+
+  .port-descriptions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 14px;
+    margin: 8px 0 18px;
+  }
+  .desc-group {
+    background: #faf7ee;
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    border: 2px solid #f0e7c8;
+  }
+  .desc-group h4 { margin: 0 0 8px; font-size: 1.05rem; }
+  .desc-group ul { margin: 0; padding-left: 18px; list-style: none; }
+  .desc-group > ul > li {
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .desc-group > ul > li > .swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    margin-top: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .desc-group > ul > li:not(:has(.swatch)) {
+    display: list-item;
+    list-style: disc;
+  }
+  .desc-group .desc-text { font-size: 0.92rem; color: var(--ink-soft); margin-top: 2px; }
 
   .operate-bullets {
     list-style: none;
@@ -1054,10 +1131,12 @@ function WiringDiagram() {
     const m = mcpPos(mcpPin);
     const startX = p.leftEdge;  // Pi pin's left edge faces the chip on its left
     const midX = (startX + m.x) / 2;
+    const d = `M ${startX} ${p.cy} C ${midX} ${p.cy}, ${midX} ${m.y}, ${m.x} ${m.y}`;
     return (
-      <path key={`${piPin}-${mcpPin}`}
-        d={`M ${startX} ${p.cy} C ${midX} ${p.cy}, ${midX} ${m.y}, ${m.x} ${m.y}`}
-        stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <g key={`${piPin}-${mcpPin}`} filter="url(#wireGlow)">
+        <path d={d} stroke="#fff" strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d={d} stroke={color} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      </g>
     );
   };
 
@@ -1071,52 +1150,16 @@ function WiringDiagram() {
       <h2>🔌 Build It! Wiring Diagram</h2>
       <p>This is the real circuit. The little parts (resistors, diodes and a transistor) are seat-belts that keep too much voltage from reaching the tiny Pi. Ask a grown-up to help, and always unplug the Pi before changing wires.</p>
 
-      <div style={{ background: '#fffbe6', borderLeft: '6px solid #ffb703', borderRadius: 12, padding: '14px 16px', marginBottom: 18 }}>
-        <h3 style={{ marginTop: 0 }}>🔍 First — what the MCP3008 chip actually looks like</h3>
-        <p style={{ margin: '4px 0 6px' }}>
-          The schematic further down is drawn for clear wires — <strong>it does NOT match the chip's physical pin order</strong>. Use this picture to plug each wire into the correct pin on the real chip.
-        </p>
-        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 10 }}>
-          <svg viewBox="0 0 240 380" style={{ width: 220, flexShrink: 0, background: '#fff', borderRadius: 8 }}>
-            <text x="120" y="20" textAnchor="middle" fontSize="11" fill="#1c2541" fontWeight="bold">notch / dot at top</text>
-            <path d="M 108 34 Q 120 46 132 34" fill="none" stroke="#1c2541" strokeWidth="2" />
-            <rect x="62" y="42" width="116" height="324" fill="#1c2541" rx="6" />
-            <circle cx="120" cy="48" r="3.5" fill="#fbfaf3" />
-            <text x="120" y="212" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#fff">MCP3008</text>
-            {Array.from({ length: 8 }).map((_, i) => {
-              const y = 72 + i * 36;
-              const left = i + 1;
-              const right = 16 - i;
-              const lname = ['CH0','CH1','CH2','CH3','CH4','CH5','CH6','CH7'][i];
-              const rname = ['VDD','VREF','AGND','CLK','DOUT','DIN','CS','DGND'][i];
-              return (
-                <g key={i}>
-                  <rect x="50" y={y - 3} width="12" height="6" fill="#aaa" />
-                  <text x="46" y={y + 3} textAnchor="end" fontSize="10" fill="#1c2541" fontWeight="bold">{lname}</text>
-                  <text x="68" y={y + 3} fontSize="9" fill="#fff" fontWeight="bold">{left}</text>
-                  <rect x="178" y={y - 3} width="12" height="6" fill="#aaa" />
-                  <text x="194" y={y + 3} fontSize="10" fill="#1c2541" fontWeight="bold">{rname}</text>
-                  <text x="172" y={y + 3} textAnchor="end" fontSize="9" fill="#fff" fontWeight="bold">{right}</text>
-                </g>
-              );
-            })}
-          </svg>
-          <div style={{ flex: 1, minWidth: 240 }}>
-            <p style={{ margin: '0 0 8px' }}><strong>Hold the chip with the notch (the half-moon or dot) at the top.</strong></p>
-            <ul style={{ margin: '0 0 8px 18px' }}>
-              <li><strong>Left side</strong> = CH0–CH7. The four <em>stations</em> wire in here:<br/>
-                  Sun → CH0 (pin 1), Wind → CH1 (pin 2), Heat → CH2 (pin 3), Lemon → CH3 (pin 4).</li>
-              <li><strong>Right side</strong> = VDD, VREF, AGND, CLK, DOUT, DIN, CS, DGND. The six wires from the <em>Pi</em> wire in here, plus the two short jumpers (pin 16↔15 and pin 9↔14).</li>
-            </ul>
-            <p style={{ fontSize: '0.9rem', color: 'var(--ink-soft)', margin: 0 }}>
-              If all four channels read 0 on the dashboard, the most common cause is that the Pi wires went into the chip's <em>left</em> side instead of the right.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <h3>Pi GPIO header ↔ MCP3008 connections (schematic — see physical pinout above)</h3>
+      <h3>The whole circuit — Pi ↔ MCP3008 ↔ stations</h3>
+      <p style={{ margin: '0 0 10px', color: 'var(--ink-soft)' }}>
+        The chip is drawn the same way it sits on the breadboard: <strong>notch at the top, CH0–CH7 on the left, VDD/VREF/AGND/CLK/DOUT/DIN/CS/DGND on the right</strong>. Match each coloured wire from the Pi pin number to the matching MCP pin number on the diagram.
+      </p>
       <svg viewBox="0 0 760 820" style={{ width: '100%', height: 'auto', background: '#fbfaf3', borderRadius: 18 }}>
+        <defs>
+          <filter id="wireGlow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="1.2" stdDeviation="0.9" floodColor="#000" floodOpacity="0.25" />
+          </filter>
+        </defs>
         {/* Pi board background (on the right side of the diagram so its 40-pin header faces the chip) */}
         <rect x="540" y="50" width="200" height="760" rx="14" fill="#0f5132" />
         <text x="640" y="74" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">Raspberry Pi Zero 2 W</text>
@@ -1161,9 +1204,9 @@ function WiringDiagram() {
           const p = mcpPos(pin);
           return (
             <g key={`L${pin}`}>
-              <rect x={p.x - 12} y={p.y - 3} width="12" height="6" fill="#cfd8e3" />
-              <text x={p.x - 16} y={p.y + 3} textAnchor="end" fontSize="9" fill="#1c2541" fontWeight="bold">{pin}</text>
-              <text x={p.x + 6} y={p.y + 3} fontSize="9" fill="#fff" fontWeight="bold">{MCP_PIN_NAMES[pin]}</text>
+              <rect x={p.x - 14} y={p.y - 4} width="14" height="8" fill="#cfd8e3" />
+              <text x={p.x - 18} y={p.y + 4} textAnchor="end" fontSize="11" fill="#1c2541" fontWeight="bold">{pin}</text>
+              <text x={p.x + 8} y={p.y + 4} fontSize="11" fill="#fff" fontWeight="bold">{MCP_PIN_NAMES[pin]}</text>
             </g>
           );
         })}
@@ -1172,9 +1215,9 @@ function WiringDiagram() {
           const p = mcpPos(pin);
           return (
             <g key={`R${pin}`}>
-              <rect x={p.x} y={p.y - 3} width="12" height="6" fill="#cfd8e3" />
-              <text x={p.x + 16} y={p.y + 3} fontSize="9" fill="#1c2541" fontWeight="bold">{pin}</text>
-              <text x={p.x - 6} y={p.y + 3} textAnchor="end" fontSize="9" fill="#fff" fontWeight="bold">{MCP_PIN_NAMES[pin]}</text>
+              <rect x={p.x} y={p.y - 4} width="14" height="8" fill="#cfd8e3" />
+              <text x={p.x + 18} y={p.y + 4} fontSize="11" fill="#1c2541" fontWeight="bold">{pin}</text>
+              <text x={p.x - 8} y={p.y + 4} textAnchor="end" fontSize="11" fill="#fff" fontWeight="bold">{MCP_PIN_NAMES[pin]}</text>
             </g>
           );
         })}
@@ -1207,19 +1250,97 @@ function WiringDiagram() {
           return (
             <g key={i}>
               <rect x={PIN_X_L} y={yTop} width={PIN_W} height={PIN_H} rx="3"
-                fill={leftColor || '#ffd166'} stroke="#fff" strokeWidth={leftColor ? '2' : '1'} />
-              <text x={PIN_X_L - 4} y={yTop + 14} textAnchor="end" fontSize="10" fill="#fff" fontWeight="bold">{leftN}</text>
-              <text x={PIN_X_L + PIN_W/2} y={yTop + 14} textAnchor="middle" fontSize="8" fontWeight="bold"
+                fill={leftColor || '#ffd166'} stroke="#fff" strokeWidth={leftColor ? '2.5' : '1'} opacity={leftColor ? 1 : 0.7} />
+              <text x={PIN_X_L - 5} y={yTop + 14} textAnchor="end" fontSize="11" fill="#fff" fontWeight="bold">{leftN}</text>
+              <text x={PIN_X_L + PIN_W/2} y={yTop + 14} textAnchor="middle" fontSize="9" fontWeight="bold"
                 fill={leftColor ? '#fff' : '#1c2541'}>{PI_PIN_NAMES[leftN - 1]}</text>
               <rect x={PIN_X_R} y={yTop} width={PIN_W} height={PIN_H} rx="3"
-                fill={rightColor || '#ffd166'} stroke="#fff" strokeWidth={rightColor ? '2' : '1'} />
-              <text x={PIN_X_R + PIN_W/2} y={yTop + 14} textAnchor="middle" fontSize="8" fontWeight="bold"
+                fill={rightColor || '#ffd166'} stroke="#fff" strokeWidth={rightColor ? '2.5' : '1'} opacity={rightColor ? 1 : 0.7} />
+              <text x={PIN_X_R + PIN_W/2} y={yTop + 14} textAnchor="middle" fontSize="9" fontWeight="bold"
                 fill={rightColor ? '#fff' : '#1c2541'}>{PI_PIN_NAMES[rightN - 1]}</text>
-              <text x={PIN_X_R + PIN_W + 4} y={yTop + 14} fontSize="10" fill="#fff" fontWeight="bold">{rightN}</text>
+              <text x={PIN_X_R + PIN_W + 5} y={yTop + 14} fontSize="11" fill="#fff" fontWeight="bold">{rightN}</text>
             </g>
           );
         })}
       </svg>
+
+      <h3>🔎 What each connection does</h3>
+      <p style={{ color: 'var(--ink-soft)', margin: '4px 0 12px' }}>
+        Every wire and every part has a job. Here's the cheat-sheet:
+      </p>
+
+      <div className="port-descriptions">
+        <div className="desc-group">
+          <h4>🥧 Raspberry Pi pins we use</h4>
+          <ul>
+            <li><span className="swatch" style={{ background: '#e63946' }}/><div><strong>Pin 1 — 3V3 (red wire)</strong><div className="desc-text">The Pi's regulated 3.3 V power supply. Powers the MCP3008 chip through pin 16 (VDD) and sets the chip's reference voltage through pin 15 (VREF).</div></div></li>
+            <li><span className="swatch" style={{ background: '#000' }}/><div><strong>Pin 6 — GND (black wire)</strong><div className="desc-text">The 0 V "ground" line. All other voltages in the circuit are measured against this. The Pi has many GND pins (6, 9, 14, 20, 25, 30, 34, 39) — any one works.</div></div></li>
+            <li><span className="swatch" style={{ background: '#4cc9f0' }}/><div><strong>Pin 19 — GPIO 10 / MOSI (blue wire)</strong><div className="desc-text">"Master Out, Slave In." Carries commands FROM the Pi TO the chip — like "please read channel 0 now".</div></div></li>
+            <li><span className="swatch" style={{ background: '#06d6a0' }}/><div><strong>Pin 21 — GPIO 9 / MISO (green wire)</strong><div className="desc-text">"Master In, Slave Out." Carries the answer FROM the chip BACK TO the Pi — a 10-bit number between 0 and 1023 representing the voltage on the requested channel.</div></div></li>
+            <li><span className="swatch" style={{ background: '#ffb703' }}/><div><strong>Pin 23 — GPIO 11 / SCLK (yellow wire)</strong><div className="desc-text">Serial Clock. The Pi ticks this line high–low–high–low and on every tick both sides move one bit of data. No clock = no communication.</div></div></li>
+            <li><span className="swatch" style={{ background: '#b5179e' }}/><div><strong>Pin 24 — GPIO 8 / CE0 (purple wire)</strong><div className="desc-text">Chip Enable 0. The Pi pulls this LOW to say "talk to me now" and HIGH again when finished. Lets you share the SPI bus with more chips later.</div></div></li>
+          </ul>
+        </div>
+
+        <div className="desc-group">
+          <h4>🔬 MCP3008 chip pins</h4>
+          <ul>
+            <li><strong>Pin 1 (CH0)</strong> — Analog input for the <em>Sun</em> station. The voltage at this pin gets sampled and turned into a 0–1023 number.</li>
+            <li><strong>Pin 2 (CH1)</strong> — Analog input for the <em>Wind</em> station.</li>
+            <li><strong>Pin 3 (CH2)</strong> — Analog input for the <em>Heat</em> station.</li>
+            <li><strong>Pin 4 (CH3)</strong> — Analog input for the <em>Lemon</em> station.</li>
+            <li><strong>Pins 5–8 (CH4–CH7)</strong> — Four spare channels. Unused in this build; great for adding more sensors later.</li>
+            <li><strong>Pin 9 (DGND)</strong> — Digital ground. Wired to Pi pin 6.</li>
+            <li><strong>Pin 10 (CS)</strong> — Chip Select input. Listens to Pi pin 24 to know when to wake up.</li>
+            <li><strong>Pin 11 (DIN)</strong> — Data In. Receives instructions from Pi pin 19.</li>
+            <li><strong>Pin 12 (DOUT)</strong> — Data Out. Sends measurements to Pi pin 21.</li>
+            <li><strong>Pin 13 (CLK)</strong> — Clock input. Marches in time with Pi pin 23.</li>
+            <li><strong>Pin 14 (AGND)</strong> — Analog ground. Jumpered to DGND (pin 9) so analog and digital sides share the same 0 V reference.</li>
+            <li><strong>Pin 15 (VREF)</strong> — Reference voltage. Jumpered to VDD (pin 16) so the chip uses 3.3 V as the "full scale" — anything above 3.3 V on a CH pin just reads as max (1023).</li>
+            <li><strong>Pin 16 (VDD)</strong> — Power. Receives 3.3 V from Pi pin 1.</li>
+          </ul>
+        </div>
+
+        <div className="desc-group">
+          <h4>☀️ Sun station parts</h4>
+          <ul>
+            <li><strong>Solar panel</strong> — Silicon cells. Photons knock electrons loose, creating a voltage between the + and − terminals. Output rises with brightness.</li>
+            <li><strong>R1 (22 kΩ)</strong> — Top resistor of the voltage divider. Limits current and pairs with R2 to scale a too-large panel voltage down to a chip-safe level.</li>
+            <li><strong>R2 (10 kΩ)</strong> — Bottom resistor of the voltage divider, to GND. The output voltage is V_panel × R2 / (R1 + R2) — about a third of the panel's voltage.</li>
+            <li><strong>D1 (1N5817 Schottky)</strong> — One-way valve. Blocks current flowing backwards into the panel when the panel is in shadow, so the chip's pin can't drag the panel voltage down.</li>
+          </ul>
+        </div>
+
+        <div className="desc-group">
+          <h4>💨 Wind station parts</h4>
+          <ul>
+            <li><strong>DC motor</strong> — Spun by hand or wind, it becomes a tiny generator (Faraday's law). The faster it spins, the bigger the voltage.</li>
+            <li><strong>D2 (1N4148)</strong> — Half-wave rectifier. Only lets the positive half of the wobbly motor voltage through to the chip.</li>
+            <li><strong>R3 (22 kΩ) + R4 (10 kΩ)</strong> — Voltage divider that drops voltage spikes to below 3.3 V before they reach the chip pin.</li>
+          </ul>
+        </div>
+
+        <div className="desc-group">
+          <h4>🔥 Heat station parts</h4>
+          <ul>
+            <li><strong>Peltier tile (TEC1-12706)</strong> — A thermoelectric module. When one side is hotter than the other (Seebeck effect), it makes a small voltage — usually under 100 mV with body-heat differences.</li>
+            <li><strong>D3 (1N4148)</strong> — Protection diode against accidental reverse polarity if the tile is flipped.</li>
+            <li><strong>R5 (10 kΩ)</strong> — Base resistor for the transistor. Limits the small current flowing into Q1's base so we don't burn it out.</li>
+            <li><strong>Q1 (2N3904 NPN)</strong> — Amplifier. The tiny Peltier voltage turns the transistor on a little; lots of bigger current flows from collector to emitter, making a much larger voltage swing for the chip to read.</li>
+            <li><strong>R6 (1 kΩ)</strong> — Collector load resistor, pulled up to 3.3 V. When Q1 is off, the collector sits near 3.3 V. When Q1 turns on, current through R6 pulls the collector toward 0 V — that swing is what the chip measures.</li>
+          </ul>
+        </div>
+
+        <div className="desc-group">
+          <h4>🍋 Lemon station parts</h4>
+          <ul>
+            <li><strong>Lemon</strong> — Provides citric acid as the electrolyte (the liquid that lets electric charge move between the two metals).</li>
+            <li><strong>Zinc-coated nail</strong> — The negative terminal. Zinc atoms give up electrons easily; the acid pulls them in.</li>
+            <li><strong>Copper coin (or wire)</strong> — The positive terminal. Copper accepts the electrons travelling through the external wire.</li>
+            <li><strong>D4 (1N4148)</strong> — Reverse-polarity protection in case the wires get swapped. Also makes sure the chip pin only ever sees positive voltage.</li>
+          </ul>
+        </div>
+      </div>
 
       <h3>Station signal-conditioning circuits</h3>
       <p>Each station has its own little safety circuit before its wire reaches the MCP3008.</p>
@@ -1420,14 +1541,12 @@ function WiringDiagram() {
   );
 }
 
-const TABS = [
-  { id: 'overview', label: '🏠 Overview' },
-  { id: 'slide',    label: '📊 Live Slide' },
-  { id: 'solar',    label: '☀️ Sun' },
-  { id: 'wind',     label: '💨 Wind' },
-  { id: 'heat',     label: '🔥 Heat' },
-  { id: 'lemon',    label: '🍋 Lemon' },
-  { id: 'wiring',   label: '🔌 Build It' },
+const NAV_LINKS = [
+  { href: '#join',       label: '📶 Join' },
+  { href: '#dashboard',  label: '📊 Dashboard' },
+  { href: '#stations',   label: '⚡ Stations' },
+  { href: '#wiring',     label: '🔌 Build' },
+  { href: '#parts',      label: '🧰 Parts' },
 ];
 
 function useWifiInfo() {
@@ -1446,8 +1565,6 @@ function useWifiInfo() {
 function App() {
   const { readings, source, history } = useLiveReadings();
   const wifi = useWifiInfo();
-  const [tab, setTab] = useState('overview');
-  const station = STATIONS.find(s => s.id === tab);
 
   return (
     <div className="wrap">
@@ -1466,95 +1583,83 @@ function App() {
         </div>
       </header>
 
-      <nav className="tabs">
-        {TABS.map(t => (
-          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
+      <nav className="sticky-nav">
+        {NAV_LINKS.map(l => <a key={l.href} href={l.href}>{l.label}</a>)}
       </nav>
 
-      {tab === 'overview' && (
-        <>
-          {wifi && (
-            <div className="card connect-card">
-              <h2>📶 Show your friends how to join!</h2>
-              <p>This little Pi made its own Wi-Fi just for the experiment. Tell your friends to connect and the dashboard will pop up on their phone!</p>
-              <div className="connect-row">
-                <div className="connect-info">
-                  <div className="wifi-creds">
-                    <div className="field">
-                      <span className="lbl">Wi-Fi name</span>
-                      <span className="val">{wifi.ssid}</span>
-                    </div>
-                    <div className="field">
-                      <span className="lbl">Password</span>
-                      <span className="val">{wifi.password}</span>
-                    </div>
-                    <div className="field">
-                      <span className="lbl">Or open in a browser</span>
-                      <span className="val">http://{wifi.hostname || 'energy.local'}</span>
-                    </div>
-                  </div>
-                  <ol className="connect-steps">
-                    <li>1️⃣ On a phone, tablet or laptop, open <strong>Wi-Fi settings</strong>.</li>
-                    <li>2️⃣ Pick <strong>{wifi.ssid}</strong> and type the password <strong>{wifi.password}</strong> — or scan the QR code on the right with your camera and your phone offers to join automatically. 📲</li>
-                    <li>3️⃣ The dashboard should pop up by itself. If it doesn't, open a browser and go to <strong>http://{wifi.hostname || 'energy.local'}</strong> (or <strong>http://{wifi.ip}</strong>).</li>
-                  </ol>
-                </div>
-                <div className="qr-block">
-                  <img src="/api/wifi-qr.svg" alt={`Scan to join ${wifi.ssid}`} width="180" height="180" />
-                  <div className="qr-caption">📷 Point your camera here to join</div>
-                </div>
+      {wifi && (
+        <section id="join" className="card connect-card">
+          <h2>📶 Show your friends how to join!</h2>
+          <p>This little Pi made its own Wi-Fi just for the experiment. Tell your friends to connect and the dashboard will pop up on their phone!</p>
+          <div className="connect-row">
+            <div className="connect-info">
+              <div className="wifi-creds">
+                <div className="field"><span className="lbl">Wi-Fi name</span><span className="val">{wifi.ssid}</span></div>
+                <div className="field"><span className="lbl">Password</span><span className="val">{wifi.password}</span></div>
+                <div className="field"><span className="lbl">Or open in a browser</span><span className="val">http://{wifi.hostname || 'energy.local'}</span></div>
               </div>
+              <ol className="connect-steps">
+                <li>1️⃣ On a phone, tablet or laptop, open <strong>Wi-Fi settings</strong>.</li>
+                <li>2️⃣ Pick <strong>{wifi.ssid}</strong> and type the password <strong>{wifi.password}</strong> — or scan the QR code on the right with your camera. 📲</li>
+                <li>3️⃣ The dashboard should pop up by itself. If it doesn't, open a browser and go to <strong>http://{wifi.hostname || 'energy.local'}</strong> (or <strong>http://{wifi.ip}</strong>).</li>
+              </ol>
             </div>
-          )}
-          <div className="card">
-            <h2>Hi Energy Detective! 🕵️</h2>
-            <p>
-              Your mission: discover how 4 totally different things — the sun, a gust of wind, a bit
-              of heat, and a juicy lemon — can all make <strong>electricity</strong>. Your trusty sidekick is the
-              Raspberry Pi Zero 2 W, a computer the size of a stick of gum. It will measure each
-              station and tell you how much energy it sees!
-            </p>
-            <div className="btn-row">
-              <button className="kid-btn" onClick={() => setTab('slide')}>See the Live Slide →</button>
-              <button className="kid-btn alt" onClick={() => setTab('wiring')}>Show me how to build it →</button>
+            <div className="qr-block">
+              <img src="/api/wifi-qr.svg" alt={`Scan to join ${wifi.ssid}`} width="180" height="180" />
+              <div className="qr-caption">📷 Point your camera here to join</div>
             </div>
           </div>
-
-          <div className="card">
-            <h2>The 4 Energy Stations</h2>
-            <div className="stations">
-              {STATIONS.map(s => <StationCard key={s.id} station={s} value={readings[s.id]} />)}
-            </div>
-          </div>
-
-          <div className="card">
-            <h2>What you'll need 🧰</h2>
-            <ul>
-              <li>1 × Raspberry Pi Zero 2 W (with a microSD card and power adapter)</li>
-              <li>1 × MCP3008 ADC chip (turns analog signals into numbers the Pi understands)</li>
-              <li>1 × small half-size breadboard + jumper wires (6 colours)</li>
-              <li>1 × small solar panel (2–5V) — the Sun Station</li>
-              <li>1 × small DC hobby motor with fan blade — the Wind Station</li>
-              <li>1 × Peltier tile (TEC1-12706) — the Heat Station</li>
-              <li>1 × lemon, 1 zinc-coated nail, 1 copper coin — the Lemon Station</li>
-              <li>A grown-up helper and a curious brain! 🧠</li>
-            </ul>
-          </div>
-        </>
+        </section>
       )}
 
-      {tab === 'slide' && (
+      <section className="card">
+        <h2>Hi Energy Detective! 🕵️</h2>
+        <p>
+          Your mission: discover how 4 totally different things — the sun, a gust of wind, a bit of
+          heat, and a juicy lemon — can all make <strong>electricity</strong>. Your trusty sidekick is
+          the Raspberry Pi Zero 2 W, a computer the size of a stick of gum. It will measure each
+          station and tell you how much energy it sees!
+        </p>
+        <div className="btn-row">
+          <a className="kid-btn" href="#dashboard">See the Live Dashboard →</a>
+          <a className="kid-btn alt" href="#wiring">Show me how to build it →</a>
+        </div>
+      </section>
+
+      <section id="dashboard">
         <PresentationSlide readings={readings} source={source} />
-      )}
+      </section>
 
-      {station && (
-        <StationDetail station={station} value={readings[tab]} history={history[tab] || []} />
-      )}
+      <section id="stations">
+        <h2 className="section-heading">⚡ The 4 Energy Stations</h2>
+        <p className="section-sub">Each one turns a different kind of energy into electricity. Scroll down for live readings, graphs and how to use each one!</p>
+        <div className="card">
+          <div className="stations">
+            {STATIONS.map(s => <StationCard key={s.id} station={s} value={readings[s.id]} />)}
+          </div>
+        </div>
+        {STATIONS.map(s => (
+          <StationDetail key={s.id} station={s} value={readings[s.id]} history={history[s.id] || []} />
+        ))}
+      </section>
 
-      {tab === 'wiring' && <WiringDiagram />}
+      <section id="wiring">
+        <WiringDiagram />
+      </section>
+
+      <section id="parts" className="card">
+        <h2>🧰 What you'll need</h2>
+        <ul>
+          <li>1 × Raspberry Pi Zero 2 W (with a microSD card and power adapter)</li>
+          <li>1 × MCP3008 ADC chip (turns analog signals into numbers the Pi understands)</li>
+          <li>1 × small half-size breadboard + jumper wires (6 colours)</li>
+          <li>1 × small solar panel (2–5 V) — the Sun Station</li>
+          <li>1 × small DC hobby motor with fan blade — the Wind Station</li>
+          <li>1 × Peltier tile (TEC1-12706) — the Heat Station</li>
+          <li>1 × lemon, 1 zinc-coated nail, 1 copper coin — the Lemon Station</li>
+          <li>A grown-up helper and a curious brain! 🧠</li>
+        </ul>
+      </section>
 
       <footer className="foot">
         Made with ⚡ and ❤️ for curious kids · A Raspberry Pi Zero 2 W STEM project
