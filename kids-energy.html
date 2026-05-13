@@ -419,6 +419,13 @@ const STATIONS = [
     range: [0.2, 4.8],
     color: '#ffb703',
     blurb: 'A solar panel catches sunlight and pushes tiny electrons through wires. The Pi reads the voltage and shows how bright the day is!',
+    operate: [
+      'Stand the panel up with its shiny black side facing the brightest light in the room.',
+      'Watch the Sun reading on the dashboard climb up. 📈',
+      'Cover the panel with your hand — the reading drops back toward zero.',
+      'Point a phone flashlight straight at it from 5 cm away for the biggest jump.',
+      'Tilt the panel left and right — find the angle that gives the highest number.',
+    ],
     examples: [
       { title: 'Solar Farm', why: 'Big fields of panels power whole towns.', anim: 'SolarFarm' },
       { title: 'Garden Light', why: 'Charges by day, glows at night.',        anim: 'GardenLight' },
@@ -437,6 +444,13 @@ const STATIONS = [
     range: [0.0, 3.6],
     color: '#56cfe1',
     blurb: 'Spinning blades turn a motor backwards — it becomes a tiny generator. Faster spinning = more electricity!',
+    operate: [
+      'Push a small paper or plastic propeller onto the motor’s metal shaft.',
+      'Spin the blade once with your finger — a tiny voltage pulse appears.',
+      'Blow hard on the blade — the dashboard jumps as it spins.',
+      'Try a hair dryer on the COOL setting from about 30 cm away.',
+      'The faster the blade spins, the bigger the number. Stop spinning and watch it fall back to zero.',
+    ],
     examples: [
       { title: 'Wind Turbine',  why: 'Giant blades spin a generator on a hill.', anim: 'WindTurbine' },
       { title: 'Hydro Dam',     why: 'Falling water spins turbines under a dam.', anim: 'HydroDam' },
@@ -455,6 +469,13 @@ const STATIONS = [
     range: [10, 850],
     color: '#ff6b6b',
     blurb: 'A Peltier tile makes electricity when one side is warm and the other is cool. Even a warm hand can power an LED!',
+    operate: [
+      'Pinch one side of the Peltier tile between your warm fingers for 10–15 seconds.',
+      'Watch the Heat reading climb as one side warms up.',
+      'Let go — the value drops back toward zero as the two sides match temperature again.',
+      'Place a warm metal spoon (just out of warm water) on top while the cool table sits under the bottom — biggest jump.',
+      'Flip the tile over — the voltage flips direction too! (The transistor amplifier turns this into a bigger or smaller reading.)',
+    ],
     examples: [
       { title: 'Power Plant',   why: 'Heat makes steam, steam spins turbines.', anim: 'PowerPlant' },
       { title: 'Geothermal',    why: 'Earth heat warms water deep underground.', anim: 'Geothermal' },
@@ -473,6 +494,13 @@ const STATIONS = [
     range: [0.5, 1.1],
     color: '#9ec96a',
     blurb: 'Lemon juice + a zinc nail + a copper coin = a soft chemical battery. Electrons take a juicy shortcut through the wire!',
+    operate: [
+      'Roll the lemon firmly on the table while pressing down — this breaks the juice cells inside.',
+      'Push the zinc nail about 2 cm into one side of the lemon.',
+      'Push the copper coin about 2 cm into the other side, making sure the metals don’t touch inside the lemon.',
+      'Wait about 5 seconds for the chemistry to start, then watch the Lemon reading.',
+      'Try the same trick with a potato, an orange, or a small cup of salty water — they all work!',
+    ],
     examples: [
       { title: 'Phone Battery', why: 'Lithium chemistry powers your phone.',   anim: 'PhoneBattery' },
       { title: 'Car Battery',   why: 'Big lead-acid battery starts the engine.',anim: 'CarBattery' },
@@ -819,6 +847,14 @@ function StationDetail({ station, value }) {
           {formatReading(value, station.unit)} {station.unit}
         </span>
       </div>
+      {station.operate && (
+        <>
+          <h3>How to make this station work 🎛️</h3>
+          <ol className="steps">
+            {station.operate.map((step, i) => <li key={i}>{step}</li>)}
+          </ol>
+        </>
+      )}
       <h3>3 Real-Life Examples</h3>
       <div className="examples">
         {station.examples.map(ex => {
