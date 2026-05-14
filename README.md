@@ -38,7 +38,7 @@ README.md                        # you are here
 | Peltier tile (TEC1-12706) | Heat station — temperature gap → electricity. |
 | 1 lemon + zinc nail + copper coin | Lemon station — chemistry → electricity. |
 | Resistors | 2 × 22 kΩ, 3 × 10 kΩ, 1 × 1 kΩ (¼ W). |
-| Diodes | 3 × 1N4148 small signal, 1 × 1N5817 Schottky. |
+| Diodes | 4 × 1N4148 small signal. |
 | NPN transistor | 1 × 2N3904 (Heat amplifier). |
 
 No capacitors are required.
@@ -54,8 +54,7 @@ Read these before you start — most "why doesn't it work" questions trace back 
    if you `sudo apt install network-manager` first.
 2. **SPI is enabled** in `raspi-config` (Interface Options → SPI → Enable).
 3. **`python3-spidev` is installed** (`sudo apt install python3-spidev`). The
-   server is live-only — there is no simulation fallback any more. If spidev
-   is missing it exits immediately.
+   server requires it; if spidev is missing it exits immediately.
 4. **`python3-qrcode` is installed** for the Wi-Fi QR code (the hotspot setup
    script installs it). Without it the QR endpoint returns a small placeholder
    SVG instead of a real code.
@@ -96,7 +95,7 @@ All values quoted are in the wiring section of the dashboard's `🔌 Build` tab.
 
 | Station | Channel | Conditioning |
 |---|---|---|
-| ☀️ Sun  | CH0 (pin 1) | R1 22 kΩ + R2 10 kΩ divider, D1 1N5817 Schottky to CH0 |
+| ☀️ Sun  | CH0 (pin 1) | R1 22 kΩ + R2 10 kΩ divider, D1 1N4148 to CH0 |
 | 💨 Wind | CH1 (pin 2) | D2 1N4148 rectifier, R3 22 kΩ + R4 10 kΩ divider |
 | 🔥 Heat | CH2 (pin 3) | D3 1N4148, R5 10 kΩ base resistor, Q1 2N3904 amp, R6 1 kΩ pull-up to 3V3 |
 | 🍋 Lemon | CH3 (pin 4) | D4 1N4148 protection only |
@@ -320,10 +319,10 @@ ssh <user>@<that-ip>
 
 ### "I want to develop the page without the Pi"
 
-The server is live-only (no simulation any more). For pure HTML/CSS
-iteration, open `kids-energy.html` directly in a browser via raw.githack or
-similar — the dashboard will show "WAITING" and "no Pi connection — retrying…"
-but everything except the live readings still renders correctly.
+The server requires real hardware. For pure HTML/CSS iteration, open
+`kids-energy.html` directly in a browser via raw.githack or similar — the
+dashboard will show "WAITING" and "no Pi connection — retrying…" but
+everything except the live readings still renders correctly.
 
 ---
 
