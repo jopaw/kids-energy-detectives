@@ -13,8 +13,8 @@ Quick start (no hotspot, joins your home Wi-Fi):
 Full hotspot setup (kid-friendly, no router needed):
     sudo bash pi/setup-hotspot.sh
 
-If spidev is missing the server still starts in simulation mode so the
-page can be developed and demoed without the hardware attached.
+If spidev is missing the server refuses to start — there is no simulation
+fallback. Install it with `sudo apt install python3-spidev`.
 
 Offline mode: if pi/vendor/{react,react-dom,babel}.js exist the server
 rewrites the page's CDN URLs to point at /vendor/* so the dashboard
@@ -116,8 +116,7 @@ def _resolve_html_path() -> Path | None:
 def sampler_loop() -> None:
     if not HAVE_SPI:
         raise RuntimeError(
-            "spidev is not installed. Install it with `sudo apt install python3-spidev` "
-            "(this server runs in live mode only — no simulation)."
+            "spidev is not installed. Install it with `sudo apt install python3-spidev`."
         )
     spi = _open_spi()
     while True:

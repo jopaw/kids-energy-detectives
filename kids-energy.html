@@ -280,6 +280,22 @@
   .circuit-card svg { width: 100%; height: auto; background: #fff; border-radius: 10px; }
   .ckt-note { font-size: 0.88rem; color: var(--ink-soft); margin: 8px 0 0; }
   .parts-list li { margin-bottom: 4px; }
+  .station-circuit {
+    background: #fff;
+    border-radius: var(--radius-md);
+    border: 2px solid #f0e7c8;
+    padding: 10px;
+    margin-top: 6px;
+  }
+  .station-circuit svg { width: 100%; height: auto; display: block; }
+  .station-build {
+    background: #faf7ee;
+    border-left: 6px solid #06d6a0;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
 
   .port-descriptions {
     display: grid;
@@ -615,6 +631,171 @@ const STATIONS = [
     ],
   },
 ];
+
+// Per-station hardware details (parts, mini circuit, build step). Kept here
+// so each station's complete story — operate steps, parts, wiring and build
+// instructions — lives in one card on the page instead of being scattered
+// across the dashboard and the wiring section.
+const STATION_TECH = {
+  solar: {
+    channel: 'CH0 (MCP3008 pin 1)',
+    parts: [
+      { label: 'Solar panel', desc: 'Silicon cells. Photons knock electrons loose, creating a voltage between the + and − terminals. Output rises with brightness.' },
+      { label: 'R1 (22 kΩ)', desc: 'Top resistor of the voltage divider. Limits current and pairs with R2 to scale a too-large panel voltage down to a chip-safe level.' },
+      { label: 'R2 (10 kΩ)', desc: 'Bottom resistor of the voltage divider, to GND. The output voltage is V_panel × R2 / (R1 + R2) — about a third of the panel’s voltage.' },
+      { label: 'D1 (1N4148)', desc: 'One-way valve. Blocks current flowing backwards into the panel when the panel is in shadow, so the chip’s pin can’t drag the panel voltage down.' },
+    ],
+    circuit: (
+      <svg viewBox="0 0 360 200">
+        <rect x="14" y="60" width="60" height="54" fill="#274690" stroke="#1c2541" />
+        <line x1="14" y1="74" x2="74" y2="74" stroke="#fff" />
+        <line x1="14" y1="88" x2="74" y2="88" stroke="#fff" />
+        <line x1="14" y1="102" x2="74" y2="102" stroke="#fff" />
+        <line x1="34" y1="60" x2="34" y2="114" stroke="#fff" />
+        <line x1="54" y1="60" x2="54" y2="114" stroke="#fff" />
+        <text x="44" y="52" textAnchor="middle" fontSize="10" fill="#1c2541" fontWeight="bold">Solar panel</text>
+        <text x="22" y="128" fontSize="9" fill="#1c2541">+ (top)</text>
+        <text x="22" y="158" fontSize="9" fill="#1c2541">− (bottom)</text>
+        <line x1="74" y1="72" x2="106" y2="72" stroke="#e63946" strokeWidth="2" />
+        <polyline points="106,72 112,64 120,80 128,64 136,80 144,64 150,72" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="128" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R1 · 22kΩ</text>
+        <line x1="150" y1="72" x2="178" y2="72" stroke="#e63946" strokeWidth="2" />
+        <circle cx="178" cy="72" r="2.8" fill="#1c2541" />
+        <line x1="178" y1="72" x2="208" y2="72" stroke="#e63946" strokeWidth="2" />
+        <polygon points="208,64 208,80 222,72" fill="#1c2541" />
+        <line x1="222" y1="64" x2="222" y2="80" stroke="#1c2541" strokeWidth="2" />
+        <text x="215" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D1 · 1N4148</text>
+        <line x1="222" y1="72" x2="296" y2="72" stroke="#e63946" strokeWidth="2" />
+        <text x="332" y="76" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH0</text>
+        <line x1="178" y1="72" x2="178" y2="98" stroke="#1c2541" strokeWidth="2" />
+        <polyline points="178,98 170,104 186,112 170,120 186,128 170,136 178,142" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="196" y="124" fontSize="9" fill="#1c2541" fontWeight="bold">R2 · 10kΩ</text>
+        <line x1="178" y1="142" x2="178" y2="174" stroke="#000" strokeWidth="2" />
+        <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
+        <line x1="44" y1="148" x2="44" y2="174" stroke="#000" strokeWidth="2" />
+        <polygon points="316,174 324,174 320,182" fill="#000" />
+        <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
+      </svg>
+    ),
+    circuitNote: 'R1 + R2 divide a 5V panel down to a safe ~3.3V on CH0. D1 blocks reverse current when the panel sits in shadow.',
+    build: <>Panel + → R1 (22 kΩ) → junction. From the junction: R2 (10 kΩ) to GND, and D1 (1N4148, stripe pointing toward chip) to MCP <strong>pin 1</strong> (CH0). Panel − to GND.</>,
+  },
+  wind: {
+    channel: 'CH1 (MCP3008 pin 2)',
+    parts: [
+      { label: 'DC motor', desc: 'Spun by hand or wind, it becomes a tiny generator (Faraday’s law). The faster it spins, the bigger the voltage.' },
+      { label: 'D2 (1N4148)', desc: 'Half-wave rectifier. Only lets the positive half of the wobbly motor voltage through to the chip.' },
+      { label: 'R3 (22 kΩ) + R4 (10 kΩ)', desc: 'Voltage divider that drops voltage spikes to below 3.3 V before they reach the chip pin.' },
+    ],
+    circuit: (
+      <svg viewBox="0 0 360 200">
+        <circle cx="44" cy="86" r="22" fill="none" stroke="#1c2541" strokeWidth="2" />
+        <text x="44" y="90" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">M</text>
+        <text x="44" y="56" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#1c2541">Motor</text>
+        <line x1="66" y1="80" x2="96" y2="80" stroke="#e63946" strokeWidth="2" />
+        <polygon points="96,72 96,88 110,80" fill="#1c2541" />
+        <line x1="110" y1="72" x2="110" y2="88" stroke="#1c2541" strokeWidth="2" />
+        <text x="103" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4148</text>
+        <line x1="110" y1="80" x2="146" y2="80" stroke="#e63946" strokeWidth="2" />
+        <polyline points="146,80 152,72 160,88 168,72 176,88 184,72 192,80" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="168" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R3 · 22kΩ</text>
+        <line x1="192" y1="80" x2="216" y2="80" stroke="#e63946" strokeWidth="2" />
+        <circle cx="216" cy="80" r="2.8" fill="#1c2541" />
+        <line x1="216" y1="80" x2="216" y2="104" stroke="#1c2541" strokeWidth="2" />
+        <polyline points="216,104 208,110 224,118 208,126 224,134 208,142 216,148" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="232" y="128" fontSize="9" fill="#1c2541" fontWeight="bold">R4 · 10kΩ</text>
+        <line x1="216" y1="148" x2="216" y2="174" stroke="#000" strokeWidth="2" />
+        <line x1="216" y1="80" x2="296" y2="80" stroke="#e63946" strokeWidth="2" />
+        <text x="332" y="84" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH1</text>
+        <line x1="44" y1="108" x2="44" y2="174" stroke="#000" strokeWidth="2" />
+        <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
+        <polygon points="316,174 324,174 320,182" fill="#000" />
+        <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
+      </svg>
+    ),
+    circuitNote: 'D2 only lets the positive half of the motor’s wobbly voltage through. R3 + R4 divide it down so spikes never exceed 3.3 V. (Without a smoothing cap the reading will jump up and down a lot — that’s normal, it’s the bumpy motor voltage!)',
+    build: <>Motor + → D2 (1N4148) → R3 (22 kΩ) → tap. From the tap: R4 (10 kΩ) to GND, and a wire to MCP <strong>pin 2</strong> (CH1). Motor − to GND.</>,
+  },
+  heat: {
+    channel: 'CH2 (MCP3008 pin 3)',
+    parts: [
+      { label: 'Peltier tile (TEC1-12706)', desc: 'A thermoelectric module. When one side is hotter than the other (Seebeck effect), it makes a small voltage — usually under 100 mV with body-heat differences.' },
+      { label: 'D3 (1N4148)', desc: 'Protection diode against accidental reverse polarity if the tile is flipped.' },
+      { label: 'R5 (10 kΩ)', desc: 'Base resistor for the transistor. Limits the small current flowing into Q1’s base so we don’t burn it out.' },
+      { label: 'Q1 (2N3904 NPN)', desc: 'Amplifier. The tiny Peltier voltage turns the transistor on a little; lots of bigger current flows from collector to emitter, making a much larger voltage swing for the chip to read.' },
+      { label: 'R6 (1 kΩ)', desc: 'Collector load resistor, pulled up to 3.3 V. When Q1 is off, the collector sits near 3.3 V. When Q1 turns on, current through R6 pulls the collector toward 0 V — that swing is what the chip measures.' },
+    ],
+    circuit: (
+      <svg viewBox="0 0 360 220">
+        <line x1="36" y1="22" x2="320" y2="22" stroke="#e63946" strokeWidth="2" />
+        <text x="14" y="26" fontSize="10" fill="#1c2541" fontWeight="bold">3V3</text>
+        <rect x="14" y="100" width="64" height="40" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.5" />
+        <text x="46" y="124" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Peltier</text>
+        <text x="46" y="94" textAnchor="middle" fontSize="9" fill="#1c2541">hot ↔ cold</text>
+        <line x1="78" y1="110" x2="106" y2="110" stroke="#e63946" strokeWidth="2" />
+        <polygon points="106,102 106,118 120,110" fill="#1c2541" />
+        <line x1="120" y1="102" x2="120" y2="118" stroke="#1c2541" strokeWidth="2" />
+        <text x="113" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D3 · 1N4148</text>
+        <line x1="120" y1="110" x2="142" y2="110" stroke="#e63946" strokeWidth="2" />
+        <polyline points="142,110 148,102 156,118 164,102 172,118 180,110" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="160" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R5 · 10kΩ</text>
+        <line x1="180" y1="110" x2="222" y2="110" stroke="#1c2541" strokeWidth="2" />
+        <circle cx="246" cy="110" r="20" fill="none" stroke="#1c2541" strokeWidth="2" />
+        <line x1="222" y1="110" x2="234" y2="110" stroke="#1c2541" strokeWidth="2" />
+        <line x1="234" y1="96" x2="234" y2="124" stroke="#1c2541" strokeWidth="3" />
+        <line x1="234" y1="96" x2="252" y2="86" stroke="#1c2541" strokeWidth="2" />
+        <line x1="252" y1="86" x2="252" y2="22" stroke="#1c2541" strokeWidth="2" />
+        <line x1="234" y1="124" x2="252" y2="134" stroke="#1c2541" strokeWidth="2" />
+        <polygon points="244,130 254,136 246,128" fill="#1c2541" />
+        <line x1="252" y1="134" x2="252" y2="186" stroke="#000" strokeWidth="2" />
+        <text x="282" y="114" fontSize="10" fill="#1c2541" fontWeight="bold">Q1 · 2N3904</text>
+        <text x="282" y="128" fontSize="9" fill="#1c2541">(B-C-E)</text>
+        <polyline points="252,22 244,30 260,38 244,46 260,54 244,62 252,70" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="278" y="48" fontSize="9" fill="#1c2541" fontWeight="bold">R6 · 1kΩ</text>
+        <circle cx="252" cy="78" r="2.8" fill="#1c2541" />
+        <line x1="252" y1="78" x2="296" y2="78" stroke="#e63946" strokeWidth="2" />
+        <text x="332" y="82" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH2</text>
+        <line x1="46" y1="140" x2="46" y2="186" stroke="#000" strokeWidth="2" />
+        <line x1="46" y1="186" x2="320" y2="186" stroke="#000" strokeWidth="2" />
+        <polygon points="316,186 324,186 320,194" fill="#000" />
+        <text x="328" y="192" fontSize="9" fill="#1c2541">GND</text>
+      </svg>
+    ),
+    circuitNote: 'A Peltier tile only makes millivolts. Q1 (NPN) amplifies it — when the Peltier sees heat, Q1 turns on and the collector voltage drops, which CH2 reads. R5 limits base current, R6 is the collector load.',
+    build: <>Peltier + → D3 (1N4148) → R5 (10 kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1 kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</>,
+  },
+  lemon: {
+    channel: 'CH3 (MCP3008 pin 4)',
+    parts: [
+      { label: 'Lemon', desc: 'Provides citric acid as the electrolyte (the liquid that lets electric charge move between the two metals).' },
+      { label: 'Zinc-coated nail', desc: 'The negative terminal. Zinc atoms give up electrons easily; the acid pulls them in.' },
+      { label: 'Copper coin (or wire)', desc: 'The positive terminal. Copper accepts the electrons travelling through the external wire.' },
+      { label: 'D4 (1N4148)', desc: 'Reverse-polarity protection in case the wires get swapped. Also makes sure the chip pin only ever sees positive voltage.' },
+    ],
+    circuit: (
+      <svg viewBox="0 0 360 200">
+        <ellipse cx="56" cy="104" rx="44" ry="28" fill="#fff5a5" stroke="#9ec96a" strokeWidth="2" />
+        <text x="56" y="70" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Lemon</text>
+        <rect x="28" y="96" width="6" height="22" fill="#aaa" stroke="#666" />
+        <text x="31" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Zn − nail</text>
+        <circle cx="84" cy="108" r="7" fill="#b87333" stroke="#7a4c1f" />
+        <text x="84" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Cu + coin</text>
+        <line x1="91" y1="108" x2="142" y2="108" stroke="#e63946" strokeWidth="2" />
+        <polygon points="142,100 142,116 156,108" fill="#1c2541" />
+        <line x1="156" y1="100" x2="156" y2="116" stroke="#1c2541" strokeWidth="2" />
+        <text x="149" y="92" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D4 · 1N4148</text>
+        <line x1="156" y1="108" x2="296" y2="108" stroke="#e63946" strokeWidth="2" />
+        <text x="332" y="112" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH3</text>
+        <line x1="31" y1="118" x2="31" y2="174" stroke="#000" strokeWidth="2" />
+        <line x1="31" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
+        <polygon points="316,174 324,174 320,182" fill="#000" />
+        <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
+      </svg>
+    ),
+    circuitNote: 'A lemon battery only makes ~0.9 V — already safe for the ADC. D4 just stops electricity flowing backwards if the wires get swapped.',
+    build: <>Copper coin → D4 (1N4148) → MCP <strong>pin 4</strong> (CH3). Zinc nail → GND.</>,
+  },
+};
 
 const HISTORY_LENGTH = 60;  // ~30 s at 500 ms per sample — used by the time-series graph
 
@@ -993,6 +1174,7 @@ function TimeSeriesGraph({ data, color, unit, min, max }) {
 }
 
 function StationDetail({ station, value, history }) {
+  const tech = STATION_TECH[station.id];
   return (
     <div id={`station-${station.id}`} className="card station-detail" style={{ borderLeft: `10px solid ${station.color}` }}>
       <h2>{station.emoji} {station.name}</h2>
@@ -1002,6 +1184,7 @@ function StationDetail({ station, value, history }) {
         Right now the Pi reads: <span style={{ color: station.color }}>
           {formatReading(value, station.unit)} {station.unit}
         </span>
+        {tech && <span style={{ color: 'var(--ink-soft)', fontWeight: 'normal' }}> · {tech.channel}</span>}
       </div>
       <h3>📊 Voltage over the last {Math.round(HISTORY_LENGTH * 0.5)} seconds</h3>
       <TimeSeriesGraph
@@ -1022,6 +1205,21 @@ function StationDetail({ station, value, history }) {
               </li>
             ))}
           </ul>
+        </>
+      )}
+      {tech && (
+        <>
+          <h3>🧪 Parts in this station</h3>
+          <ul className="parts-list">
+            {tech.parts.map(p => (
+              <li key={p.label}><strong>{p.label}</strong> — {p.desc}</li>
+            ))}
+          </ul>
+          <h3>🔌 Wiring ({station.emoji} → {tech.channel.split(' ')[0]})</h3>
+          <div className="station-circuit">{tech.circuit}</div>
+          <p className="ckt-note">{tech.circuitNote}</p>
+          <h3>🛠️ Build this station's circuit</h3>
+          <p className="station-build">{tech.build}</p>
         </>
       )}
       <h3>3 Real-Life Examples</h3>
@@ -1284,192 +1482,11 @@ function WiringDiagram() {
           </ul>
         </div>
 
-        <div className="desc-group">
-          <h4>☀️ Sun station parts</h4>
-          <ul>
-            <li><strong>Solar panel</strong> — Silicon cells. Photons knock electrons loose, creating a voltage between the + and − terminals. Output rises with brightness.</li>
-            <li><strong>R1 (22 kΩ)</strong> — Top resistor of the voltage divider. Limits current and pairs with R2 to scale a too-large panel voltage down to a chip-safe level.</li>
-            <li><strong>R2 (10 kΩ)</strong> — Bottom resistor of the voltage divider, to GND. The output voltage is V_panel × R2 / (R1 + R2) — about a third of the panel's voltage.</li>
-            <li><strong>D1 (1N5817 Schottky)</strong> — One-way valve. Blocks current flowing backwards into the panel when the panel is in shadow, so the chip's pin can't drag the panel voltage down.</li>
-          </ul>
-        </div>
-
-        <div className="desc-group">
-          <h4>💨 Wind station parts</h4>
-          <ul>
-            <li><strong>DC motor</strong> — Spun by hand or wind, it becomes a tiny generator (Faraday's law). The faster it spins, the bigger the voltage.</li>
-            <li><strong>D2 (1N4148)</strong> — Half-wave rectifier. Only lets the positive half of the wobbly motor voltage through to the chip.</li>
-            <li><strong>R3 (22 kΩ) + R4 (10 kΩ)</strong> — Voltage divider that drops voltage spikes to below 3.3 V before they reach the chip pin.</li>
-          </ul>
-        </div>
-
-        <div className="desc-group">
-          <h4>🔥 Heat station parts</h4>
-          <ul>
-            <li><strong>Peltier tile (TEC1-12706)</strong> — A thermoelectric module. When one side is hotter than the other (Seebeck effect), it makes a small voltage — usually under 100 mV with body-heat differences.</li>
-            <li><strong>D3 (1N4148)</strong> — Protection diode against accidental reverse polarity if the tile is flipped.</li>
-            <li><strong>R5 (10 kΩ)</strong> — Base resistor for the transistor. Limits the small current flowing into Q1's base so we don't burn it out.</li>
-            <li><strong>Q1 (2N3904 NPN)</strong> — Amplifier. The tiny Peltier voltage turns the transistor on a little; lots of bigger current flows from collector to emitter, making a much larger voltage swing for the chip to read.</li>
-            <li><strong>R6 (1 kΩ)</strong> — Collector load resistor, pulled up to 3.3 V. When Q1 is off, the collector sits near 3.3 V. When Q1 turns on, current through R6 pulls the collector toward 0 V — that swing is what the chip measures.</li>
-          </ul>
-        </div>
-
-        <div className="desc-group">
-          <h4>🍋 Lemon station parts</h4>
-          <ul>
-            <li><strong>Lemon</strong> — Provides citric acid as the electrolyte (the liquid that lets electric charge move between the two metals).</li>
-            <li><strong>Zinc-coated nail</strong> — The negative terminal. Zinc atoms give up electrons easily; the acid pulls them in.</li>
-            <li><strong>Copper coin (or wire)</strong> — The positive terminal. Copper accepts the electrons travelling through the external wire.</li>
-            <li><strong>D4 (1N4148)</strong> — Reverse-polarity protection in case the wires get swapped. Also makes sure the chip pin only ever sees positive voltage.</li>
-          </ul>
-        </div>
       </div>
 
-      <h3>Station signal-conditioning circuits</h3>
-      <p>Each station has its own little safety circuit before its wire reaches the MCP3008.</p>
-
-      <div className="circuits-grid">
-        {/* Solar */}
-        <div className="circuit-card">
-          <h4>☀️ Sun → CH0</h4>
-          <svg viewBox="0 0 360 200">
-            <rect x="14" y="60" width="60" height="54" fill="#274690" stroke="#1c2541" />
-            <line x1="14" y1="74" x2="74" y2="74" stroke="#fff" />
-            <line x1="14" y1="88" x2="74" y2="88" stroke="#fff" />
-            <line x1="14" y1="102" x2="74" y2="102" stroke="#fff" />
-            <line x1="34" y1="60" x2="34" y2="114" stroke="#fff" />
-            <line x1="54" y1="60" x2="54" y2="114" stroke="#fff" />
-            <text x="44" y="52" textAnchor="middle" fontSize="10" fill="#1c2541" fontWeight="bold">Solar panel</text>
-            <text x="22" y="128" fontSize="9" fill="#1c2541">+ (top)</text>
-            <text x="22" y="158" fontSize="9" fill="#1c2541">− (bottom)</text>
-            {/* + wire */}
-            <line x1="74" y1="72" x2="106" y2="72" stroke="#e63946" strokeWidth="2" />
-            {/* R1 (zig-zag) */}
-            <polyline points="106,72 112,64 120,80 128,64 136,80 144,64 150,72" stroke="#1c2541" strokeWidth="2" fill="none" />
-            <text x="128" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R1 · 22kΩ</text>
-            <line x1="150" y1="72" x2="178" y2="72" stroke="#e63946" strokeWidth="2" />
-            <circle cx="178" cy="72" r="2.8" fill="#1c2541" />
-            {/* D1 Schottky */}
-            <line x1="178" y1="72" x2="208" y2="72" stroke="#e63946" strokeWidth="2" />
-            <polygon points="208,64 208,80 222,72" fill="#1c2541" />
-            <line x1="222" y1="64" x2="222" y2="80" stroke="#1c2541" strokeWidth="2" />
-            <text x="215" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D1 · 1N5817</text>
-            <line x1="222" y1="72" x2="296" y2="72" stroke="#e63946" strokeWidth="2" />
-            <text x="332" y="76" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH0</text>
-            {/* R2 to GND */}
-            <line x1="178" y1="72" x2="178" y2="98" stroke="#1c2541" strokeWidth="2" />
-            <polyline points="178,98 170,104 186,112 170,120 186,128 170,136 178,142" stroke="#1c2541" strokeWidth="2" fill="none" />
-            <text x="196" y="124" fontSize="9" fill="#1c2541" fontWeight="bold">R2 · 10kΩ</text>
-            <line x1="178" y1="142" x2="178" y2="174" stroke="#000" strokeWidth="2" />
-            {/* GND rail */}
-            <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
-            <line x1="44" y1="148" x2="44" y2="174" stroke="#000" strokeWidth="2" />
-            <polygon points="316,174 324,174 320,182" fill="#000" />
-            <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
-          </svg>
-          <p className="ckt-note">R1 + R2 divide a 5V panel down to a safe ~3.3V on CH0. D1 (Schottky) blocks reverse current when the panel sits in shadow.</p>
-        </div>
-
-        {/* Wind */}
-        <div className="circuit-card">
-          <h4>💨 Wind → CH1</h4>
-          <svg viewBox="0 0 360 200">
-            <circle cx="44" cy="86" r="22" fill="none" stroke="#1c2541" strokeWidth="2" />
-            <text x="44" y="90" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">M</text>
-            <text x="44" y="56" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#1c2541">Motor</text>
-            {/* + wire from motor */}
-            <line x1="66" y1="80" x2="96" y2="80" stroke="#e63946" strokeWidth="2" />
-            {/* D2 rectifier */}
-            <polygon points="96,72 96,88 110,80" fill="#1c2541" />
-            <line x1="110" y1="72" x2="110" y2="88" stroke="#1c2541" strokeWidth="2" />
-            <text x="103" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4148</text>
-            <line x1="110" y1="80" x2="146" y2="80" stroke="#e63946" strokeWidth="2" />
-            {/* R3 to tap */}
-            <polyline points="146,80 152,72 160,88 168,72 176,88 184,72 192,80" stroke="#1c2541" strokeWidth="2" fill="none" />
-            <text x="168" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R3 · 22kΩ</text>
-            <line x1="192" y1="80" x2="216" y2="80" stroke="#e63946" strokeWidth="2" />
-            <circle cx="216" cy="80" r="2.8" fill="#1c2541" />
-            {/* R4 down to GND */}
-            <line x1="216" y1="80" x2="216" y2="104" stroke="#1c2541" strokeWidth="2" />
-            <polyline points="216,104 208,110 224,118 208,126 224,134 208,142 216,148" stroke="#1c2541" strokeWidth="2" fill="none" />
-            <text x="232" y="128" fontSize="9" fill="#1c2541" fontWeight="bold">R4 · 10kΩ</text>
-            <line x1="216" y1="148" x2="216" y2="174" stroke="#000" strokeWidth="2" />
-            {/* tap to CH1 */}
-            <line x1="216" y1="80" x2="296" y2="80" stroke="#e63946" strokeWidth="2" />
-            <text x="332" y="84" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH1</text>
-            {/* motor − to GND */}
-            <line x1="44" y1="108" x2="44" y2="174" stroke="#000" strokeWidth="2" />
-            <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
-            <polygon points="316,174 324,174 320,182" fill="#000" />
-            <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
-          </svg>
-          <p className="ckt-note">D2 only lets the positive half of the motor's wobbly voltage through. R3 + R4 divide it down so spikes never exceed 3.3V. (Without a smoothing cap the reading will jump up and down a lot — that's normal, it's the bumpy motor voltage!)</p>
-        </div>
-
-        {/* Heat */}
-        <div className="circuit-card">
-          <h4>🔥 Heat → CH2 (transistor amp)</h4>
-          <svg viewBox="0 0 360 220">
-            <line x1="36" y1="22" x2="320" y2="22" stroke="#e63946" strokeWidth="2" />
-            <text x="14" y="26" fontSize="10" fill="#1c2541" fontWeight="bold">3V3</text>
-            <rect x="14" y="100" width="64" height="40" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.5" />
-            <text x="46" y="124" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Peltier</text>
-            <text x="46" y="94" textAnchor="middle" fontSize="9" fill="#1c2541">hot ↔ cold</text>
-            <line x1="78" y1="110" x2="106" y2="110" stroke="#e63946" strokeWidth="2" />
-            <polygon points="106,102 106,118 120,110" fill="#1c2541" />
-            <line x1="120" y1="102" x2="120" y2="118" stroke="#1c2541" strokeWidth="2" />
-            <text x="113" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D3 · 1N4148</text>
-            <line x1="120" y1="110" x2="142" y2="110" stroke="#e63946" strokeWidth="2" />
-            <polyline points="142,110 148,102 156,118 164,102 172,118 180,110" stroke="#1c2541" strokeWidth="2" fill="none" />
-            <text x="160" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R5 · 10kΩ</text>
-            <line x1="180" y1="110" x2="222" y2="110" stroke="#1c2541" strokeWidth="2" />
-            <circle cx="246" cy="110" r="20" fill="none" stroke="#1c2541" strokeWidth="2" />
-            <line x1="222" y1="110" x2="234" y2="110" stroke="#1c2541" strokeWidth="2" />
-            <line x1="234" y1="96" x2="234" y2="124" stroke="#1c2541" strokeWidth="3" />
-            <line x1="234" y1="96" x2="252" y2="86" stroke="#1c2541" strokeWidth="2" />
-            <line x1="252" y1="86" x2="252" y2="22" stroke="#1c2541" strokeWidth="2" />
-            <line x1="234" y1="124" x2="252" y2="134" stroke="#1c2541" strokeWidth="2" />
-            <polygon points="244,130 254,136 246,128" fill="#1c2541" />
-            <line x1="252" y1="134" x2="252" y2="186" stroke="#000" strokeWidth="2" />
-            <text x="282" y="114" fontSize="10" fill="#1c2541" fontWeight="bold">Q1 · 2N3904</text>
-            <text x="282" y="128" fontSize="9" fill="#1c2541">(B-C-E)</text>
-            <polyline points="252,22 244,30 260,38 244,46 260,54 244,62 252,70" stroke="#1c2541" strokeWidth="2" fill="none" transform="translate(0,0)" />
-            <text x="278" y="48" fontSize="9" fill="#1c2541" fontWeight="bold">R6 · 1kΩ</text>
-            <circle cx="252" cy="78" r="2.8" fill="#1c2541" />
-            <line x1="252" y1="78" x2="296" y2="78" stroke="#e63946" strokeWidth="2" />
-            <text x="332" y="82" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH2</text>
-            <line x1="46" y1="140" x2="46" y2="186" stroke="#000" strokeWidth="2" />
-            <line x1="46" y1="186" x2="320" y2="186" stroke="#000" strokeWidth="2" />
-            <polygon points="316,186 324,186 320,194" fill="#000" />
-            <text x="328" y="192" fontSize="9" fill="#1c2541">GND</text>
-          </svg>
-          <p className="ckt-note">A Peltier tile only makes millivolts. Q1 (NPN) amplifies it — when the Peltier sees heat, Q1 turns on and the collector voltage drops, which CH2 reads. R5 limits base current, R6 is the collector load.</p>
-        </div>
-
-        {/* Lemon */}
-        <div className="circuit-card">
-          <h4>🍋 Lemon → CH3</h4>
-          <svg viewBox="0 0 360 200">
-            <ellipse cx="56" cy="104" rx="44" ry="28" fill="#fff5a5" stroke="#9ec96a" strokeWidth="2" />
-            <text x="56" y="70" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Lemon</text>
-            <rect x="28" y="96" width="6" height="22" fill="#aaa" stroke="#666" />
-            <text x="31" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Zn − nail</text>
-            <circle cx="84" cy="108" r="7" fill="#b87333" stroke="#7a4c1f" />
-            <text x="84" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Cu + coin</text>
-            <line x1="91" y1="108" x2="142" y2="108" stroke="#e63946" strokeWidth="2" />
-            <polygon points="142,100 142,116 156,108" fill="#1c2541" />
-            <line x1="156" y1="100" x2="156" y2="116" stroke="#1c2541" strokeWidth="2" />
-            <text x="149" y="92" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D4 · 1N4148</text>
-            <line x1="156" y1="108" x2="296" y2="108" stroke="#e63946" strokeWidth="2" />
-            <text x="332" y="112" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH3</text>
-            <line x1="31" y1="118" x2="31" y2="174" stroke="#000" strokeWidth="2" />
-            <line x1="31" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
-            <polygon points="316,174 324,174 320,182" fill="#000" />
-            <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
-          </svg>
-          <p className="ckt-note">A lemon battery only makes ~0.9V — already safe for the ADC. D4 just stops electricity flowing backwards if the wires get swapped.</p>
-        </div>
-      </div>
+      <p style={{ marginTop: 14, padding: '10px 12px', background: '#eaf6ff', borderLeft: '6px solid #4cc9f0', borderRadius: 10 }}>
+        ⚡ <strong>Looking for a specific station's parts, mini-schematic and build step?</strong> Scroll up to its station card above — each station has all of that bundled together in one place.
+      </p>
 
       <h3>Wire colour key</h3>
       <div className="wiring-legend">
@@ -1484,22 +1501,22 @@ function WiringDiagram() {
       <h3>Extra parts you'll need (on top of the four station bits)</h3>
       <ul className="parts-list">
         <li><strong>Resistors (¼ W):</strong> 2× 22kΩ (R1, R3), 3× 10kΩ (R2, R4, R5), 1× 1kΩ (R6)</li>
-        <li><strong>Diodes:</strong> 3× 1N4148 small-signal (D2, D3, D4), 1× 1N5817 Schottky (D1)</li>
+        <li><strong>Diodes:</strong> 4× 1N4148 small-signal (D1, D2, D3, D4)</li>
         <li><strong>Transistor:</strong> 1× 2N3904 NPN (Q1) for the Heat amplifier</li>
       </ul>
 
-      <h3>Build it in 11 simple steps</h3>
+      <h3>Build the Pi ↔ MCP3008 brain</h3>
+      <p style={{ marginTop: 0, color: 'var(--ink-soft)' }}>
+        These steps wire up the chip itself. For each station's mini-circuit (parts + schematic + build step), scroll up to that station's card — everything for one station is in one place there.
+      </p>
       <ol className="steps">
         <li>Switch off the Pi and unplug the power cable. Safety first!</li>
         <li>Plug the MCP3008 into the middle of the breadboard so its legs straddle the gap. The notch (or dot) marks pin&nbsp;1.</li>
         <li><strong>Power:</strong> <em>red</em> wire from Pi <strong>pin 1</strong> (3V3) to MCP <strong>pin 16</strong> (VDD); add a short jumper from MCP pin 16 to MCP <strong>pin 15</strong> (VREF).</li>
         <li><strong>Ground:</strong> <em>black</em> wire from Pi <strong>pin 6</strong> (GND) to MCP <strong>pin 9</strong> (DGND); short jumper from pin 9 to MCP <strong>pin 14</strong> (AGND).</li>
         <li><strong>SPI:</strong> <em>yellow</em> Pi <strong>pin 23</strong> (SCLK/GPIO11) → MCP <strong>pin 13</strong> (CLK); <em>green</em> Pi <strong>pin 21</strong> (MISO/GPIO9) → MCP <strong>pin 12</strong> (DOUT); <em>blue</em> Pi <strong>pin 19</strong> (MOSI/GPIO10) → MCP <strong>pin 11</strong> (DIN); <em>purple</em> Pi <strong>pin 24</strong> (CE0/GPIO8) → MCP <strong>pin 10</strong> (CS).</li>
-        <li>Build the <strong>Sun</strong> circuit on the breadboard: panel + → R1 (22kΩ) → junction. From the junction: R2 (10kΩ) to GND, and D1 (1N5817, stripe pointing toward chip) to MCP <strong>pin 1</strong> (CH0). Panel − to GND.</li>
-        <li>Build the <strong>Wind</strong> circuit: motor + → D2 (1N4148) → R3 (22kΩ) → tap. From the tap: R4 (10kΩ) to GND, and a wire to MCP <strong>pin 2</strong> (CH1). Motor − to GND.</li>
-        <li>Build the <strong>Heat</strong> circuit: Peltier + → D3 (1N4148) → R5 (10kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</li>
-        <li>Build the <strong>Lemon</strong> circuit: copper coin → D4 (1N4148) → MCP <strong>pin 4</strong> (CH3). Zinc nail → GND.</li>
-        <li>Double-check every part letter (R1, D1, Q1…) against the diagram before powering on.</li>
+        <li>Build each station's mini-circuit using the per-station card above (Sun → CH0, Wind → CH1, Heat → CH2, Lemon → CH3).</li>
+        <li>Double-check every part letter (R1, D1, Q1…) against the diagrams before powering on.</li>
         <li>
           Plug the Pi back in and start the server. Two options:
           <ul style={{ marginTop: 6 }}>
