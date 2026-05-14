@@ -1298,9 +1298,10 @@ function WiringDiagram() {
   };
 
   // Chip in the middle of the diagram, physical-orientation (notch top, CH on left, SPI on right).
+  // Pins 1-8 (CH0-CH7) sit on the chip's LEFT edge, pins 9-16 (DGND..VDD) on the RIGHT.
   const MCP_X = 320, MCP_Y = 150, MCP_W = 140, MCP_H = 320;
   const mcpPos = (n) => {
-    const onLeft = n >= 9;
+    const onLeft = n <= 8;
     const order = onLeft ? MCP_LEFT_PINS : MCP_RIGHT_PINS;
     const idx = order.indexOf(n);
     const y = MCP_Y + 30 + idx * ((MCP_H - 60) / 7);
