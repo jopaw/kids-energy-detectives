@@ -294,20 +294,6 @@
   }
   .swatch { width: 22px; height: 12px; border-radius: 4px; flex: 0 0 auto; }
 
-  .circuits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 14px;
-    margin-top: 10px;
-  }
-  .circuit-card {
-    background: #faf7ee;
-    border-radius: var(--radius-md);
-    padding: 12px 14px;
-    border: 2px solid #f0e7c8;
-  }
-  .circuit-card h4 { margin: 0 0 8px; font-size: 1.05rem; }
-  .circuit-card svg { width: 100%; height: auto; background: #fff; border-radius: 10px; }
   .ckt-note { font-size: 0.88rem; color: var(--ink-soft); margin: 8px 0 0; }
   .parts-list li { margin-bottom: 4px; }
   .station-circuit {
@@ -668,7 +654,8 @@ const STATIONS = [
 // across the dashboard and the wiring section.
 const STATION_TECH = {
   solar: {
-    channel: 'CH0 (MCP3008 pin 1)',
+    channel: 'CH0',
+    mcpPin: 1,
     parts: [
       { label: 'Solar panel', desc: 'Silicon cells. Photons knock electrons loose, creating a voltage between the + and − terminals. Output rises with brightness.' },
       { label: 'R1 (22 kΩ)', desc: 'Top resistor of the voltage divider. Limits current and pairs with R2 to scale a too-large panel voltage down to a chip-safe level.' },
@@ -711,7 +698,8 @@ const STATION_TECH = {
     build: <>Panel + → R1 (22 kΩ) → junction. From the junction: R2 (10 kΩ) to GND, and D1 (1N4148, stripe pointing toward chip) to MCP <strong>pin 1</strong> (CH0). Panel − to GND.</>,
   },
   wind: {
-    channel: 'CH1 (MCP3008 pin 2)',
+    channel: 'CH1',
+    mcpPin: 2,
     parts: [
       { label: 'DC motor', desc: 'Spun by hand or wind, it becomes a tiny generator (Faraday’s law). The faster it spins, the bigger the voltage.' },
       { label: 'D2 (1N4148)', desc: 'Half-wave rectifier. Only lets the positive half of the wobbly motor voltage through to the chip.' },
@@ -747,7 +735,8 @@ const STATION_TECH = {
     build: <>Motor + → D2 (1N4148) → R3 (22 kΩ) → tap. From the tap: R4 (10 kΩ) to GND, and a wire to MCP <strong>pin 2</strong> (CH1). Motor − to GND.</>,
   },
   heat: {
-    channel: 'CH2 (MCP3008 pin 3)',
+    channel: 'CH2',
+    mcpPin: 3,
     parts: [
       { label: 'Peltier tile (TEC1-12706)', desc: 'A thermoelectric module. When one side is hotter than the other (Seebeck effect), it makes a small voltage — usually under 100 mV with body-heat differences.' },
       { label: 'D3 (1N4148)', desc: 'Protection diode against accidental reverse polarity if the tile is flipped.' },
@@ -795,7 +784,8 @@ const STATION_TECH = {
     build: <>Peltier + → D3 (1N4148) → R5 (10 kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1 kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</>,
   },
   lemon: {
-    channel: 'CH3 (MCP3008 pin 4)',
+    channel: 'CH3',
+    mcpPin: 4,
     parts: [
       { label: 'Lemon', desc: 'Provides citric acid as the electrolyte (the liquid that lets electric charge move between the two metals).' },
       { label: 'Zinc-coated nail', desc: 'The negative terminal. Zinc atoms give up electrons easily; the acid pulls them in.' },
@@ -850,11 +840,15 @@ function useLiveReadings() {
         const j = await r.json();
         if (cancelled) return;
         setReadings(prev => {
+          let changed = false;
           const next = { ...prev };
           STATIONS.forEach(s => {
-            if (typeof j[s.id] === 'number') next[s.id] = j[s.id];
+            if (typeof j[s.id] === 'number' && j[s.id] !== prev[s.id]) {
+              next[s.id] = j[s.id];
+              changed = true;
+            }
           });
-          return next;
+          return changed ? next : prev;
         });
         setHistory(prev => {
           const next = { ...prev };
@@ -1203,6 +1197,27 @@ function TimeSeriesGraph({ data, color, unit, min, max }) {
   );
 }
 
+// Static per-station hardware block. `tech` and `emoji` are stable module-
+// level references, so React.memo means this subtree renders once and is
+// then skipped on every 500 ms poll re-render of the parent.
+const StationTech = React.memo(function StationTech({ tech, emoji }) {
+  return (
+    <>
+      <h3>🧪 Parts in this station</h3>
+      <ul className="parts-list">
+        {tech.parts.map(p => (
+          <li key={p.label}><strong>{p.label}</strong> — {p.desc}</li>
+        ))}
+      </ul>
+      <h3>🔌 Wiring ({emoji} → {tech.channel})</h3>
+      <div className="station-circuit">{tech.circuit}</div>
+      <p className="ckt-note">{tech.circuitNote}</p>
+      <h3>🛠️ Build this station's circuit</h3>
+      <p className="station-build">{tech.build}</p>
+    </>
+  );
+});
+
 function StationDetail({ station, value, history }) {
   const tech = STATION_TECH[station.id];
   return (
@@ -1214,7 +1229,7 @@ function StationDetail({ station, value, history }) {
         Right now the Pi reads: <span style={{ color: station.color }}>
           {formatReading(value, station.unit)} {station.unit}
         </span>
-        {tech && <span style={{ color: 'var(--ink-soft)', fontWeight: 'normal' }}> · {tech.channel}</span>}
+        {tech && <span style={{ color: 'var(--ink-soft)', fontWeight: 'normal' }}> · {tech.channel} (MCP3008 pin {tech.mcpPin})</span>}
       </div>
       <h3>📊 Voltage over the last {Math.round(HISTORY_LENGTH * 0.5)} seconds</h3>
       <TimeSeriesGraph
@@ -1237,21 +1252,7 @@ function StationDetail({ station, value, history }) {
           </ul>
         </>
       )}
-      {tech && (
-        <>
-          <h3>🧪 Parts in this station</h3>
-          <ul className="parts-list">
-            {tech.parts.map(p => (
-              <li key={p.label}><strong>{p.label}</strong> — {p.desc}</li>
-            ))}
-          </ul>
-          <h3>🔌 Wiring ({station.emoji} → {tech.channel.split(' ')[0]})</h3>
-          <div className="station-circuit">{tech.circuit}</div>
-          <p className="ckt-note">{tech.circuitNote}</p>
-          <h3>🛠️ Build this station's circuit</h3>
-          <p className="station-build">{tech.build}</p>
-        </>
-      )}
+      {tech && <StationTech tech={tech} emoji={station.emoji} />}
       <h3>3 Real-Life Examples</h3>
       <div className="examples">
         {station.examples.map(ex => {
