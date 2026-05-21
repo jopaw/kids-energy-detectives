@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Energy Detectives - Raspberry Pi Zero 2 W server.
 
-Reads the four station voltages from an MCP3008 ADC on the Pi's SPI bus
-and serves the kids-energy.html dashboard to anyone on the same Wi-Fi.
+Reads the Peltier (Heat) station voltage from an MCP3008 ADC on the
+Pi's SPI bus and serves the kids-energy.html dashboard to anyone on the
+same Wi-Fi.
 
 Quick start (no hotspot, joins your home Wi-Fi):
     sudo raspi-config -> Interface Options -> SPI -> Enable
@@ -50,18 +51,10 @@ VREF = 3.3
 ADC_MAX = 1023.0
 SAMPLE_INTERVAL = 0.3
 
-# Channel + display scaling for each station. The scale factors un-do the
-# voltage dividers in the wiring diagram so the page can show the real
-# panel / motor / Peltier / lemon voltage instead of the divided value.
-#   Solar:  R1=22k, R2=10k  =>  V_real = V_adc * (R1+R2)/R2 = 3.2 x
-#   Wind:   R3=22k, R4=10k  =>  same 3.2 x
-#   Heat:   reported in mV at the transistor collector
-#   Lemon:  direct, no divider
+# Channel + display scaling. The Heat station reports the transistor
+# collector voltage in millivolts.
 STATIONS = {
-    "solar": {"channel": 0, "scale": 3.2,  "unit": "V"},
-    "wind":  {"channel": 1, "scale": 3.2,  "unit": "V"},
     "heat":  {"channel": 2, "scale": 1000, "unit": "mV"},
-    "lemon": {"channel": 3, "scale": 1.0,  "unit": "V"},
 }
 
 # Captive-portal probe URLs from iOS / macOS / Android / Windows. We deliberately

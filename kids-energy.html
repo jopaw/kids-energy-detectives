@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vidyuth's Energy Detectives — A Raspberry Pi Kids Project</title>
-<meta name="description" content="A fun, kid-friendly STEM project that turns a Raspberry Pi Zero 2 into an Energy Detective with 4 hands-on stations: Sun, Wind, Heat and Lemon power." />
+<meta name="description" content="A fun, kid-friendly STEM project that turns a Raspberry Pi Zero 2 into an Energy Detective with a hands-on Peltier tile that turns warm fingers into electricity." />
 
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
@@ -18,10 +18,7 @@
     --bg-3: #d6f0ff;
     --ink:  #1c2541;
     --ink-soft: #4a5779;
-    --sun:  #ffb703;
-    --wind: #56cfe1;
     --heat: #ff6b6b;
-    --lemon:#caffbf;
     --card-shadow: 0 12px 30px rgba(28,37,65,0.12);
     --radius-lg: 22px;
     --radius-md: 14px;
@@ -177,10 +174,7 @@
   }
   .station:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(28,37,65,0.18); }
   .card-hint { margin-top: 10px; font-size: 0.8rem; opacity: 0.7; font-style: italic; }
-  .station.solar { background: linear-gradient(160deg, #fff3a8, #ffd166); }
-  .station.wind  { background: linear-gradient(160deg, #caf0f8, #90e0ef); }
   .station.heat  { background: linear-gradient(160deg, #ffd6d6, #ff9aa2); }
-  .station.lemon { background: linear-gradient(160deg, #d8f3dc, #b7e4c7); }
   .station h3 { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; margin: 0 0 8px; }
   .station .emoji { font-size: 1.8rem; }
   .station .what {
@@ -546,56 +540,6 @@ const formatReading = (v, unit) => v.toFixed(unit === 'mV' ? 0 : 2);
 
 const STATIONS = [
   {
-    id: 'solar',
-    name: 'Sun Power Station',
-    emoji: '☀️',
-    cls: 'solar',
-    from: 'Light',
-    to: 'Electricity',
-    sensor: 'Solar panel + MCP3008 channel 0',
-    unit: 'V',
-    range: [0.2, 4.8],
-    color: '#ffb703',
-    blurb: 'A solar panel catches sunlight and pushes tiny electrons through wires. The Pi reads the voltage and shows how bright the day is!',
-    operate: [
-      { icon: '🔆', text: <><strong>Aim for the brightest light.</strong> Point the panel's shiny black side straight at a lamp, the sun through a window, or a phone torch. The brighter the light, the more electrons the silicon cells knock free — so the bigger the reading on the dashboard.</> },
-      { icon: '🤚', text: <><strong>Block the light with your hand.</strong> The reading drops to almost zero in less than a second. The cells stop catching photons the moment they're in shadow.</> },
-      { icon: '📐', text: <><strong>Hunt for the best angle.</strong> Tilt the panel slowly forward and back. Light hitting straight on (90°) gives the highest voltage; angled light just bounces away.</> },
-      { icon: '🎨', text: <><strong>Try filters.</strong> Hold coloured paper or sunglasses between the light and the panel. Some colours block more light, so the number falls — your panel can "see" which colours have more energy.</> },
-      { icon: '🏠', text: <><strong>Indoor vs outdoor.</strong> Walk outside on a sunny day and compare. The Sun puts out about 100 times more power per square metre than a room lamp!</> },
-    ],
-    examples: [
-      { title: 'Solar Farm', why: 'Big fields of panels power whole towns.', anim: 'SolarFarm' },
-      { title: 'Garden Light', why: 'Charges by day, glows at night.',        anim: 'GardenLight' },
-      { title: 'Calculator',  why: 'A tiny panel runs the screen and chips.', anim: 'Calculator' },
-    ],
-  },
-  {
-    id: 'wind',
-    name: 'Wind Power Station',
-    emoji: '💨',
-    cls: 'wind',
-    from: 'Motion',
-    to: 'Electricity',
-    sensor: 'Small DC motor (generator) + MCP3008 channel 1',
-    unit: 'V',
-    range: [0.0, 3.6],
-    color: '#56cfe1',
-    blurb: 'Spinning blades turn a motor backwards — it becomes a tiny generator. Faster spinning = more electricity!',
-    operate: [
-      { icon: '🪁', text: <><strong>Fit a propeller to the motor shaft.</strong> A paper fan, a plastic prop, or even a taped-on folded Post-it works. The motor only makes electricity when something spins the shaft.</> },
-      { icon: '🌀', text: <><strong>Flick and watch.</strong> Spin the blade once with your finger and let it coast. You'll see the dashboard spike up, then slowly fall as the blade slows down — that's the motor turning kinetic energy into electrical energy.</> },
-      { icon: '💨', text: <><strong>Try real wind.</strong> Blow on the blade from about 10 cm away, or use a hair dryer on its <em>COLD</em> setting (never hot — plastic blades can melt). The harder the wind, the higher the number.</> },
-      { icon: '↩️', text: <><strong>Direction matters!</strong> Spin the motor the opposite way and the voltage flips negative. The protection diode (D2) only lets one direction through, so the dashboard might read zero when spinning backwards.</> },
-      { icon: '🎢', text: <><strong>Race a friend.</strong> Take turns spinning the blade as fast as you can and see who scores the highest peak on the graph!</> },
-    ],
-    examples: [
-      { title: 'Wind Turbine',  why: 'Giant blades spin a generator on a hill.', anim: 'WindTurbine' },
-      { title: 'Hydro Dam',     why: 'Falling water spins turbines under a dam.', anim: 'HydroDam' },
-      { title: 'Crank Torch',   why: 'Cranking a handle lights up the bulb.',     anim: 'CrankTorch' },
-    ],
-  },
-  {
     id: 'heat',
     name: 'Heat Power Station',
     emoji: '🔥',
@@ -620,32 +564,6 @@ const STATIONS = [
       { title: 'Body Heat Watch',why:'Tiny watches charge from your warm wrist.', anim: 'BodyHeat' },
     ],
   },
-  {
-    id: 'lemon',
-    name: 'Lemon Power Station',
-    emoji: '🍋',
-    cls: 'lemon',
-    from: 'Chemical',
-    to: 'Electricity',
-    sensor: 'Lemon battery (Zn + Cu) + MCP3008 channel 3',
-    unit: 'V',
-    range: [0.5, 1.1],
-    color: '#9ec96a',
-    blurb: 'Lemon juice + a zinc nail + a copper coin = a soft chemical battery. Electrons take a juicy shortcut through the wire!',
-    operate: [
-      { icon: '🍋', text: <><strong>Juice it up first.</strong> Roll the lemon firmly on the table while pressing down. This crushes the juice cells inside so the acidic liquid can flow between the metals.</> },
-      { icon: '🔩', text: <><strong>Push the zinc nail in about 2 cm</strong> on one side of the lemon. Zinc atoms are loose with their outer electrons — they happily give them away when the acid attacks the metal.</> },
-      { icon: '🪙', text: <><strong>Push the copper coin in about 2 cm away from the nail.</strong> The two metals must NOT touch each other inside the lemon — the lemon's acid HAS to be in between for the chemistry to work.</> },
-      { icon: '⏱️', text: <><strong>Wait about 5 seconds.</strong> The chemical reaction needs a moment to start. A single lemon should give about 0.9 V — not a lot, but real electricity made from fruit!</> },
-      { icon: '🥔', text: <><strong>Try other juicy things.</strong> A potato, an orange, even a small cup of salty water all work. Anything with electrolytes (charged particles dissolved in water) can be a battery.</> },
-      { icon: '🔗', text: <><strong>Chain them together.</strong> Connect the copper of one lemon to the zinc of another with a wire and you can stack the voltages. Two lemons in series ≈ 1.8 V.</> },
-    ],
-    examples: [
-      { title: 'Phone Battery', why: 'Lithium chemistry powers your phone.',   anim: 'PhoneBattery' },
-      { title: 'Car Battery',   why: 'Big lead-acid battery starts the engine.',anim: 'CarBattery' },
-      { title: 'Toy AA Battery',why: 'Two AAs spin the motor in a toy car.',    anim: 'ToyAA' },
-    ],
-  },
 ];
 
 // Per-station hardware details (parts, mini circuit, build step). Kept here
@@ -653,87 +571,6 @@ const STATIONS = [
 // instructions — lives in one card on the page instead of being scattered
 // across the dashboard and the wiring section.
 const STATION_TECH = {
-  solar: {
-    channel: 'CH0',
-    mcpPin: 1,
-    parts: [
-      { label: 'Solar panel', desc: 'Silicon cells. Photons knock electrons loose, creating a voltage between the + and − terminals. Output rises with brightness.' },
-      { label: 'R1 (22 kΩ)', desc: 'Top resistor of the voltage divider. Limits current and pairs with R2 to scale a too-large panel voltage down to a chip-safe level.' },
-      { label: 'R2 (10 kΩ)', desc: 'Bottom resistor of the voltage divider, to GND. The output voltage is V_panel × R2 / (R1 + R2) — about a third of the panel’s voltage.' },
-      { label: 'D1 (1N4148)', desc: 'One-way valve. Blocks current flowing backwards into the panel when the panel is in shadow, so the chip’s pin can’t drag the panel voltage down.' },
-    ],
-    circuit: (
-      <svg viewBox="0 0 360 200">
-        <rect x="14" y="60" width="60" height="54" fill="#274690" stroke="#1c2541" />
-        <line x1="14" y1="74" x2="74" y2="74" stroke="#fff" />
-        <line x1="14" y1="88" x2="74" y2="88" stroke="#fff" />
-        <line x1="14" y1="102" x2="74" y2="102" stroke="#fff" />
-        <line x1="34" y1="60" x2="34" y2="114" stroke="#fff" />
-        <line x1="54" y1="60" x2="54" y2="114" stroke="#fff" />
-        <text x="44" y="52" textAnchor="middle" fontSize="10" fill="#1c2541" fontWeight="bold">Solar panel</text>
-        <text x="22" y="128" fontSize="9" fill="#1c2541">+ (top)</text>
-        <text x="22" y="158" fontSize="9" fill="#1c2541">− (bottom)</text>
-        <line x1="74" y1="72" x2="106" y2="72" stroke="#e63946" strokeWidth="2" />
-        <polyline points="106,72 112,64 120,80 128,64 136,80 144,64 150,72" stroke="#1c2541" strokeWidth="2" fill="none" />
-        <text x="128" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R1 · 22kΩ</text>
-        <line x1="150" y1="72" x2="178" y2="72" stroke="#e63946" strokeWidth="2" />
-        <circle cx="178" cy="72" r="2.8" fill="#1c2541" />
-        <line x1="178" y1="72" x2="208" y2="72" stroke="#e63946" strokeWidth="2" />
-        <polygon points="208,64 208,80 222,72" fill="#1c2541" />
-        <line x1="222" y1="64" x2="222" y2="80" stroke="#1c2541" strokeWidth="2" />
-        <text x="215" y="56" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D1 · 1N4148</text>
-        <line x1="222" y1="72" x2="296" y2="72" stroke="#e63946" strokeWidth="2" />
-        <text x="332" y="76" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH0</text>
-        <line x1="178" y1="72" x2="178" y2="98" stroke="#1c2541" strokeWidth="2" />
-        <polyline points="178,98 170,104 186,112 170,120 186,128 170,136 178,142" stroke="#1c2541" strokeWidth="2" fill="none" />
-        <text x="196" y="124" fontSize="9" fill="#1c2541" fontWeight="bold">R2 · 10kΩ</text>
-        <line x1="178" y1="142" x2="178" y2="174" stroke="#000" strokeWidth="2" />
-        <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
-        <line x1="44" y1="148" x2="44" y2="174" stroke="#000" strokeWidth="2" />
-        <polygon points="316,174 324,174 320,182" fill="#000" />
-        <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
-      </svg>
-    ),
-    circuitNote: 'R1 + R2 divide a 5V panel down to a safe ~3.3V on CH0. D1 blocks reverse current when the panel sits in shadow.',
-    build: <>Panel + → R1 (22 kΩ) → junction. From the junction: R2 (10 kΩ) to GND, and D1 (1N4148, stripe pointing toward chip) to MCP <strong>pin 1</strong> (CH0). Panel − to GND.</>,
-  },
-  wind: {
-    channel: 'CH1',
-    mcpPin: 2,
-    parts: [
-      { label: 'DC motor', desc: 'Spun by hand or wind, it becomes a tiny generator (Faraday’s law). The faster it spins, the bigger the voltage.' },
-      { label: 'D2 (1N4148)', desc: 'Half-wave rectifier. Only lets the positive half of the wobbly motor voltage through to the chip.' },
-      { label: 'R3 (22 kΩ) + R4 (10 kΩ)', desc: 'Voltage divider that drops voltage spikes to below 3.3 V before they reach the chip pin.' },
-    ],
-    circuit: (
-      <svg viewBox="0 0 360 200">
-        <circle cx="44" cy="86" r="22" fill="none" stroke="#1c2541" strokeWidth="2" />
-        <text x="44" y="90" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#1c2541">M</text>
-        <text x="44" y="56" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#1c2541">Motor</text>
-        <line x1="66" y1="80" x2="96" y2="80" stroke="#e63946" strokeWidth="2" />
-        <polygon points="96,72 96,88 110,80" fill="#1c2541" />
-        <line x1="110" y1="72" x2="110" y2="88" stroke="#1c2541" strokeWidth="2" />
-        <text x="103" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4148</text>
-        <line x1="110" y1="80" x2="146" y2="80" stroke="#e63946" strokeWidth="2" />
-        <polyline points="146,80 152,72 160,88 168,72 176,88 184,72 192,80" stroke="#1c2541" strokeWidth="2" fill="none" />
-        <text x="168" y="64" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R3 · 22kΩ</text>
-        <line x1="192" y1="80" x2="216" y2="80" stroke="#e63946" strokeWidth="2" />
-        <circle cx="216" cy="80" r="2.8" fill="#1c2541" />
-        <line x1="216" y1="80" x2="216" y2="104" stroke="#1c2541" strokeWidth="2" />
-        <polyline points="216,104 208,110 224,118 208,126 224,134 208,142 216,148" stroke="#1c2541" strokeWidth="2" fill="none" />
-        <text x="232" y="128" fontSize="9" fill="#1c2541" fontWeight="bold">R4 · 10kΩ</text>
-        <line x1="216" y1="148" x2="216" y2="174" stroke="#000" strokeWidth="2" />
-        <line x1="216" y1="80" x2="296" y2="80" stroke="#e63946" strokeWidth="2" />
-        <text x="332" y="84" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH1</text>
-        <line x1="44" y1="108" x2="44" y2="174" stroke="#000" strokeWidth="2" />
-        <line x1="44" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
-        <polygon points="316,174 324,174 320,182" fill="#000" />
-        <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
-      </svg>
-    ),
-    circuitNote: 'D2 only lets the positive half of the motor’s wobbly voltage through. R3 + R4 divide it down so spikes never exceed 3.3 V. (Without a smoothing cap the reading will jump up and down a lot — that’s normal, it’s the bumpy motor voltage!)',
-    build: <>Motor + → D2 (1N4148) → R3 (22 kΩ) → tap. From the tap: R4 (10 kΩ) to GND, and a wire to MCP <strong>pin 2</strong> (CH1). Motor − to GND.</>,
-  },
   heat: {
     channel: 'CH2',
     mcpPin: 3,
@@ -782,38 +619,6 @@ const STATION_TECH = {
     ),
     circuitNote: 'A Peltier tile only makes millivolts. Q1 (NPN) amplifies it — when the Peltier sees heat, Q1 turns on and the collector voltage drops, which CH2 reads. R5 limits base current, R6 is the collector load.',
     build: <>Peltier + → D3 (1N4148) → R5 (10 kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1 kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</>,
-  },
-  lemon: {
-    channel: 'CH3',
-    mcpPin: 4,
-    parts: [
-      { label: 'Lemon', desc: 'Provides citric acid as the electrolyte (the liquid that lets electric charge move between the two metals).' },
-      { label: 'Zinc-coated nail', desc: 'The negative terminal. Zinc atoms give up electrons easily; the acid pulls them in.' },
-      { label: 'Copper coin (or wire)', desc: 'The positive terminal. Copper accepts the electrons travelling through the external wire.' },
-      { label: 'D4 (1N4148)', desc: 'Reverse-polarity protection in case the wires get swapped. Also makes sure the chip pin only ever sees positive voltage.' },
-    ],
-    circuit: (
-      <svg viewBox="0 0 360 200">
-        <ellipse cx="56" cy="104" rx="44" ry="28" fill="#fff5a5" stroke="#9ec96a" strokeWidth="2" />
-        <text x="56" y="70" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Lemon</text>
-        <rect x="28" y="96" width="6" height="22" fill="#aaa" stroke="#666" />
-        <text x="31" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Zn − nail</text>
-        <circle cx="84" cy="108" r="7" fill="#b87333" stroke="#7a4c1f" />
-        <text x="84" y="142" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">Cu + coin</text>
-        <line x1="91" y1="108" x2="142" y2="108" stroke="#e63946" strokeWidth="2" />
-        <polygon points="142,100 142,116 156,108" fill="#1c2541" />
-        <line x1="156" y1="100" x2="156" y2="116" stroke="#1c2541" strokeWidth="2" />
-        <text x="149" y="92" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D4 · 1N4148</text>
-        <line x1="156" y1="108" x2="296" y2="108" stroke="#e63946" strokeWidth="2" />
-        <text x="332" y="112" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH3</text>
-        <line x1="31" y1="118" x2="31" y2="174" stroke="#000" strokeWidth="2" />
-        <line x1="31" y1="174" x2="320" y2="174" stroke="#000" strokeWidth="2" />
-        <polygon points="316,174 324,174 320,182" fill="#000" />
-        <text x="328" y="180" fontSize="9" fill="#1c2541">GND</text>
-      </svg>
-    ),
-    circuitNote: 'A lemon battery only makes ~0.9 V — already safe for the ADC. D4 just stops electricity flowing backwards if the wires get swapped.',
-    build: <>Copper coin → D4 (1N4148) → MCP <strong>pin 4</strong> (CH3). Zinc nail → GND.</>,
   },
 };
 
@@ -906,99 +711,6 @@ function RingGauge({ value, min, max, color, unit, size = 110 }) {
 }
 
 const ExampleAnims = {
-  SolarFarm: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="0" y="80" width="200" height="30" fill="#a7e08b" />
-      <g className="pulse">
-        <circle cx="40" cy="28" r="14" fill="#ffd166" />
-        <g stroke="#ffb703" strokeWidth="2">
-          <line x1="40" y1="6" x2="40" y2="14" />
-          <line x1="40" y1="42" x2="40" y2="50" />
-          <line x1="18" y1="28" x2="26" y2="28" />
-          <line x1="54" y1="28" x2="62" y2="28" />
-        </g>
-      </g>
-      {[80,120,160].map((x,i)=>(
-        <g key={i}>
-          <polygon points={`${x},80 ${x+30},80 ${x+34},60 ${x+4},60`} fill="#274690" />
-          <line x1={x+8} y1="63" x2={x+8} y2="78" stroke="#fff" strokeWidth="1" />
-          <line x1={x+18} y1="63" x2={x+18} y2="78" stroke="#fff" strokeWidth="1" />
-          <line x1={x+28} y1="63" x2={x+28} y2="78" stroke="#fff" strokeWidth="1" />
-        </g>
-      ))}
-    </svg>
-  ),
-  GardenLight: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="0" y="90" width="200" height="20" fill="#5a8f3a" />
-      <rect x="95" y="50" width="10" height="40" fill="#666" />
-      <polygon points="80,50 120,50 110,30 90,30" fill="#274690" />
-      <circle className="flicker" cx="100" cy="62" r="6" fill="#ffe066" />
-      <circle cx="30" cy="80" r="6" fill="#7bc36a" />
-      <circle cx="170" cy="80" r="6" fill="#7bc36a" />
-    </svg>
-  ),
-  Calculator: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="50" y="15" width="100" height="85" rx="8" fill="#333" />
-      <rect x="58" y="22" width="84" height="20" fill="#9ee493" />
-      <text x="138" y="37" textAnchor="end" fontFamily="monospace" fill="#1c2541" fontSize="14">
-        <tspan className="flicker">2+2=4</tspan>
-      </text>
-      <rect x="58" y="46" width="22" height="6" rx="2" fill="#274690" />
-      {[0,1,2,3].map(r => [0,1,2].map(c => (
-        <rect key={r+'-'+c} x={60 + c*28} y={56 + r*10} width="22" height="6" rx="2" fill="#ddd" />
-      )))}
-    </svg>
-  ),
-  WindTurbine: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="0" y="95" width="200" height="15" fill="#a7e08b" />
-      <polygon points="98,98 102,98 104,42 96,42" fill="#eee" stroke="#888" />
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 100 42" to="360 100 42" dur="1.6s" repeatCount="indefinite" />
-        {[0, 120, 240].map(a => (
-          <polygon key={a} points="100,40 103.5,20 101.5,8 98.5,8 96.5,20" fill="#fff" stroke="#666" strokeWidth="1.2" transform={`rotate(${a} 100 42)`} />
-        ))}
-        <circle cx="100" cy="42" r="5" fill="#555" />
-        <circle cx="100" cy="42" r="2" fill="#222" />
-      </g>
-    </svg>
-  ),
-  HydroDam: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="0" y="20" width="100" height="70" fill="#4cc9f0" />
-      <rect x="100" y="60" width="100" height="30" fill="#a7e08b" />
-      <polygon points="92,18 108,18 104,90 96,90" fill="#888" />
-      <rect x="100" y="60" width="22" height="6" fill="#274690" />
-      <g className="bubble"><circle cx="125" cy="72" r="3" fill="#4cc9f0" opacity=".7"/></g>
-      <g className="bubble" style={{ animationDelay: '0.6s' }}><circle cx="138" cy="74" r="2" fill="#4cc9f0" opacity=".7"/></g>
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 158 75" to="360 158 75" dur="2.4s" repeatCount="indefinite" />
-        <circle cx="158" cy="75" r="11" fill="#fff" stroke="#666" strokeWidth="1.2" />
-        {[0, 60, 120, 180, 240, 300].map(a => (
-          <rect key={a} x="156.5" y="64" width="3" height="9" fill="#666" transform={`rotate(${a} 158 75)`} />
-        ))}
-        <circle cx="158" cy="75" r="2.5" fill="#333" />
-      </g>
-    </svg>
-  ),
-  CrankTorch: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="50" y="42" width="80" height="32" rx="6" fill="#ff6b6b" />
-      <rect x="58" y="48" width="14" height="20" rx="2" fill="#c44a4a" />
-      <text x="65" y="62" textAnchor="middle" fontSize="9" fill="#fff" fontWeight="bold">⚡</text>
-      <polygon points="130,42 162,30 162,86 130,74" fill="#ffb703" stroke="#b8830a" />
-      <circle className="flicker" cx="172" cy="58" r="10" fill="#ffe066" />
-      <circle cx="40" cy="58" r="5" fill="#222" />
-      <g>
-        <animateTransform attributeName="transform" type="rotate" from="0 40 58" to="360 40 58" dur="1.4s" repeatCount="indefinite" />
-        <line x1="40" y1="58" x2="40" y2="36" stroke="#333" strokeWidth="3" strokeLinecap="round" />
-        <line x1="40" y1="36" x2="52" y2="36" stroke="#333" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="54" cy="36" r="3.5" fill="#111" />
-      </g>
-    </svg>
-  ),
   PowerPlant: () => (
     <svg viewBox="0 0 200 110">
       <rect x="0" y="90" width="200" height="20" fill="#bbb" />
@@ -1028,40 +740,6 @@ const ExampleAnims = {
       <rect x="80" y="50" width="40" height="20" rx="3" fill="#4cc9f0" />
       <text className="flicker" x="100" y="64" textAnchor="middle" fontFamily="monospace" fill="#fff" fontSize="10">12:00</text>
       <g className="steam"><ellipse cx="100" cy="34" rx="8" ry="4" fill="#ff6b6b" opacity=".6" /></g>
-    </svg>
-  ),
-  PhoneBattery: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="70" y="10" width="60" height="90" rx="10" fill="#1c2541" />
-      <rect x="76" y="18" width="48" height="74" rx="4" fill="#4cc9f0" />
-      <rect x="82" y="60" width="36" height="26" rx="3" fill="#06d6a0" className="pulse" />
-      <text x="100" y="78" textAnchor="middle" fill="#fff" fontWeight="bold" fontSize="10">85%</text>
-      <circle cx="100" cy="98" r="3" fill="#888" />
-    </svg>
-  ),
-  CarBattery: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="50" y="40" width="100" height="55" rx="6" fill="#222" />
-      <rect x="60" y="30" width="14" height="14" fill="#888" />
-      <rect x="126" y="30" width="14" height="14" fill="#888" />
-      <text x="68" y="42" textAnchor="middle" fill="#ff6b6b" fontWeight="bold" fontSize="14">+</text>
-      <text x="133" y="42" textAnchor="middle" fill="#4cc9f0" fontWeight="bold" fontSize="14">−</text>
-      <rect x="60" y="55" width="80" height="14" rx="3" fill="#06d6a0" className="pulse" />
-      <text x="100" y="86" textAnchor="middle" fill="#fff" fontSize="9">12V</text>
-    </svg>
-  ),
-  ToyAA: () => (
-    <svg viewBox="0 0 200 110">
-      <rect x="30" y="50" width="60" height="22" rx="4" fill="#c44a4a" />
-      <rect x="90" y="55" width="6" height="12" fill="#888" />
-      <rect x="100" y="50" width="60" height="22" rx="4" fill="#c44a4a" />
-      <rect x="160" y="55" width="6" height="12" fill="#888" />
-      <text x="60" y="65" textAnchor="middle" fill="#fff" fontWeight="bold" fontSize="11">AA +</text>
-      <text x="130" y="65" textAnchor="middle" fill="#fff" fontWeight="bold" fontSize="11">AA +</text>
-      <g className="spin-fast" style={{ transformOrigin: '100px 92px' }}>
-        <circle cx="100" cy="92" r="10" fill="#888" />
-        <line x1="100" y1="82" x2="100" y2="102" stroke="#fff" strokeWidth="2" />
-      </g>
     </svg>
   ),
 };
@@ -1103,7 +781,7 @@ function PresentationSlide({ readings, source }) {
       <h2>Live Energy Dashboard <span className="live-tag">{source === 'pi' ? 'LIVE' : 'WAITING'}</span></h2>
       <p style={{ marginTop: 0, opacity: 0.85 }}>
         {source === 'pi'
-          ? 'Pi Zero 2 W is reading the four stations through the MCP3008 every half second.'
+          ? 'Pi Zero 2 W is reading the Peltier tile through the MCP3008 every half second.'
           : 'Waiting for the Pi… make sure the Pi is on, you are connected to its Wi-Fi, and you opened http://energy.local.'}
       </p>
 
@@ -1363,7 +1041,7 @@ function WiringDiagram() {
       <h2>🔌 Build It! Wiring Diagram</h2>
       <p>This is the real circuit. The little parts (resistors, diodes and a transistor) are seat-belts that keep too much voltage from reaching the tiny Pi. Ask a grown-up to help, and always unplug the Pi before changing wires.</p>
 
-      <h3>The whole circuit — Pi ↔ MCP3008 ↔ stations</h3>
+      <h3>The whole circuit — Pi ↔ MCP3008 ↔ Peltier</h3>
       <p style={{ margin: '0 0 10px', color: 'var(--ink-soft)' }}>
         The chip is drawn the same way it sits on the breadboard: <strong>notch at the top, CH0–CH7 on the left, VDD/VREF/AGND/CLK/DOUT/DIN/CS/DGND on the right</strong>. Match each coloured wire from the Pi pin number to the matching MCP pin number on the diagram.
       </p>
@@ -1435,12 +1113,9 @@ function WiringDiagram() {
           );
         })}
 
-        {/* Station signal arrows on the LEFT side of MCP pointing INTO CH0-CH3 */}
+        {/* Station signal arrow on the LEFT side of MCP pointing INTO CH2 */}
         {[
-          { ch: 1, emoji: '☀️', name: 'Sun signal in' },
-          { ch: 2, emoji: '💨', name: 'Wind signal in' },
           { ch: 3, emoji: '🔥', name: 'Heat signal in' },
-          { ch: 4, emoji: '🍋', name: 'Lemon signal in' },
         ].map(s => {
           const c = mcpPos(s.ch);
           return (
@@ -1498,11 +1173,8 @@ function WiringDiagram() {
         <div className="desc-group">
           <h4>🔬 MCP3008 chip pins</h4>
           <ul>
-            <li><strong>Pin 1 (CH0)</strong> — Analog input for the <em>Sun</em> station. The voltage at this pin gets sampled and turned into a 0–1023 number.</li>
-            <li><strong>Pin 2 (CH1)</strong> — Analog input for the <em>Wind</em> station.</li>
-            <li><strong>Pin 3 (CH2)</strong> — Analog input for the <em>Heat</em> station.</li>
-            <li><strong>Pin 4 (CH3)</strong> — Analog input for the <em>Lemon</em> station.</li>
-            <li><strong>Pins 5–8 (CH4–CH7)</strong> — Four spare channels. Unused in this build; great for adding more sensors later.</li>
+            <li><strong>Pin 3 (CH2)</strong> — Analog input for the <em>Heat</em> station. The voltage at this pin gets sampled and turned into a 0–1023 number.</li>
+            <li><strong>Pins 1, 2, 4–8 (CH0, CH1, CH3–CH7)</strong> — Seven spare channels. Unused in this build; great for adding more sensors later.</li>
             <li><strong>Pin 9 (DGND)</strong> — Digital ground. Wired to Pi pin 6.</li>
             <li><strong>Pin 10 (CS)</strong> — Chip Select input. Listens to Pi pin 24 to know when to wake up.</li>
             <li><strong>Pin 11 (DIN)</strong> — Data In. Receives instructions from Pi pin 19.</li>
@@ -1517,7 +1189,7 @@ function WiringDiagram() {
       </div>
 
       <p style={{ marginTop: 14, padding: '10px 12px', background: '#eaf6ff', borderLeft: '6px solid #4cc9f0', borderRadius: 10 }}>
-        ⚡ <strong>Looking for a specific station's parts, mini-schematic and build step?</strong> Scroll up to its station card above — each station has all of that bundled together in one place.
+        ⚡ <strong>Looking for the Heat station's parts, mini-schematic and build step?</strong> Scroll up to the Heat station card above — parts, wiring and build instructions are all bundled together there.
       </p>
 
       <h3>Wire colour key</h3>
@@ -1530,16 +1202,16 @@ function WiringDiagram() {
         ))}
       </div>
 
-      <h3>Extra parts you'll need (on top of the four station bits)</h3>
+      <h3>Extra parts you'll need (on top of the Peltier tile)</h3>
       <ul className="parts-list">
-        <li><strong>Resistors (¼ W):</strong> 2× 22kΩ (R1, R3), 3× 10kΩ (R2, R4, R5), 1× 1kΩ (R6)</li>
-        <li><strong>Diodes:</strong> 4× 1N4148 small-signal (D1, D2, D3, D4)</li>
+        <li><strong>Resistors (¼ W):</strong> 1× 10kΩ (R5), 1× 1kΩ (R6)</li>
+        <li><strong>Diode:</strong> 1× 1N4148 small-signal (D3)</li>
         <li><strong>Transistor:</strong> 1× 2N3904 NPN (Q1) for the Heat amplifier</li>
       </ul>
 
       <h3>Build the Pi ↔ MCP3008 brain</h3>
       <p style={{ marginTop: 0, color: 'var(--ink-soft)' }}>
-        These steps wire up the chip itself. For each station's mini-circuit (parts + schematic + build step), scroll up to that station's card — everything for one station is in one place there.
+        These steps wire up the chip itself. For the Peltier mini-circuit (parts + schematic + build step), scroll up to the Heat station card — everything is in one place there.
       </p>
       <ol className="steps">
         <li>Switch off the Pi and unplug the power cable. Safety first!</li>
@@ -1547,7 +1219,7 @@ function WiringDiagram() {
         <li><strong>Power:</strong> <em>red</em> wire from Pi <strong>pin 1</strong> (3V3) to MCP <strong>pin 16</strong> (VDD); add a short jumper from MCP pin 16 to MCP <strong>pin 15</strong> (VREF).</li>
         <li><strong>Ground:</strong> <em>black</em> wire from Pi <strong>pin 6</strong> (GND) to MCP <strong>pin 9</strong> (DGND); short jumper from pin 9 to MCP <strong>pin 14</strong> (AGND).</li>
         <li><strong>SPI:</strong> <em>yellow</em> Pi <strong>pin 23</strong> (SCLK/GPIO11) → MCP <strong>pin 13</strong> (CLK); <em>green</em> Pi <strong>pin 21</strong> (MISO/GPIO9) → MCP <strong>pin 12</strong> (DOUT); <em>blue</em> Pi <strong>pin 19</strong> (MOSI/GPIO10) → MCP <strong>pin 11</strong> (DIN); <em>purple</em> Pi <strong>pin 24</strong> (CE0/GPIO8) → MCP <strong>pin 10</strong> (CS).</li>
-        <li>Build each station's mini-circuit using the per-station card above (Sun → CH0, Wind → CH1, Heat → CH2, Lemon → CH3).</li>
+        <li>Build the Heat station's mini-circuit using the card above (Heat → CH2).</li>
         <li>Double-check every part letter (R1, D1, Q1…) against the diagrams before powering on.</li>
         <li>
           Plug the Pi back in and start the server. Two options:
@@ -1561,10 +1233,9 @@ function WiringDiagram() {
       <div className="safety">
         <strong>Grown-up helper rules:</strong>
         <ul style={{ margin: '6px 0 0 18px' }}>
-          <li>Never plug a station <em>directly</em> into a chip channel — always go through its protection circuit.</li>
-          <li>Diodes have a stripe on one end (the cathode). The stripe faces toward the chip / away from the source.</li>
+          <li>Never plug the Peltier <em>directly</em> into a chip channel — always go through its protection circuit.</li>
+          <li>The diode has a stripe on one end (the cathode). The stripe faces toward the chip / away from the Peltier.</li>
           <li>The 2N3904 transistor has a flat side. With the flat side facing you, the pins are <strong>E – B – C</strong>.</li>
-          <li>Lemon batteries are safe to touch but don't eat the lemon afterwards.</li>
           <li>The Peltier can get warm — hold the hot side with a coin or metal spoon, not bare fingers.</li>
           <li>Always unplug the Pi before changing wires.</li>
         </ul>
@@ -1618,8 +1289,8 @@ function App() {
         </div>
         <p className="sub">
           Get ready for some energy flowing in your mind. A super fun kids' project where a tiny
-          <strong> Raspberry Pi Zero 2 W</strong> listens to <strong>4 energy stations</strong> and
-          shows you how light, wind, heat and lemons can all make electricity!
+          <strong> Raspberry Pi Zero 2 W</strong> listens to a <strong>Peltier tile</strong> and
+          shows you how a little bit of heat can make electricity!
         </p>
         <div className="badges">
           <span className="badge">Ages 9–12</span>
@@ -1661,10 +1332,11 @@ function App() {
       <section className="card">
         <h2>Hi Energy Detective! 🕵️</h2>
         <p>
-          Your mission: discover how 4 totally different things — the sun, a gust of wind, a bit of
-          heat, and a juicy lemon — can all make <strong>electricity</strong>. Your trusty sidekick is
-          the Raspberry Pi Zero 2 W, a computer the size of a stick of gum. It will measure each
-          station and tell you how much energy it sees!
+          Your mission: discover how a tiny bit of <strong>heat</strong> can make
+          <strong> electricity</strong>. A Peltier tile turns a temperature difference into a
+          voltage — even a warm finger is enough! Your trusty sidekick is the Raspberry Pi Zero 2 W,
+          a computer the size of a stick of gum. It will measure the tile and tell you how much
+          energy it sees!
         </p>
         <div className="btn-row">
           <a className="kid-btn" href="#dashboard">See the Live Dashboard →</a>
@@ -1677,8 +1349,8 @@ function App() {
       </section>
 
       <section id="stations">
-        <h2 className="section-heading">⚡ The 4 Energy Stations</h2>
-        <p className="section-sub">Each one turns a different kind of energy into electricity. Scroll down for live readings, graphs and how to use each one!</p>
+        <h2 className="section-heading">⚡ The Heat Energy Station</h2>
+        <p className="section-sub">A Peltier tile turns a temperature difference into electricity. Scroll down for live readings, graphs and how to use it!</p>
         <div className="card">
           <div className="stations">
             {STATIONS.map(s => <StationCard key={s.id} station={s} value={readings[s.id]} />)}
@@ -1699,10 +1371,7 @@ function App() {
           <li>1 × Raspberry Pi Zero 2 W (with a microSD card and power adapter)</li>
           <li>1 × MCP3008 ADC chip (turns analog signals into numbers the Pi understands)</li>
           <li>1 × small half-size breadboard + jumper wires (6 colours)</li>
-          <li>1 × small solar panel (2–5 V) — the Sun Station</li>
-          <li>1 × small DC hobby motor with fan blade — the Wind Station</li>
           <li>1 × Peltier tile (TEC1-12706) — the Heat Station</li>
-          <li>1 × lemon, 1 zinc-coated nail, 1 copper coin — the Lemon Station</li>
           <li>A grown-up helper and a curious brain! 🧠</li>
         </ul>
       </section>

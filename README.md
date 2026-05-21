@@ -1,10 +1,10 @@
 # ⚡ Vidyuth's Energy Detectives
 
 A kid-friendly STEM project that turns a **Raspberry Pi Zero 2 W** into a hands-on
-energy explorer. Four stations — **Sun, Wind, Heat, Lemon** — each generate a
-small voltage that the Pi reads through an MCP3008 ADC. The readings stream
-live to a single-page web dashboard with graphs, a 4-station live slide, real-life
-example animations, and an annotated wiring diagram.
+energy explorer. A **Peltier (Heat) tile** generates a small voltage that the
+Pi reads through an MCP3008 ADC. The reading streams live to a single-page web
+dashboard with a graph, real-life example animations, and an annotated wiring
+diagram.
 
 The Pi also acts as its own Wi-Fi hotspot, so anyone in the room can join
 "EnergyDetectives" Wi-Fi and the dashboard pops up automatically on their phone.
@@ -33,12 +33,9 @@ README.md                        # you are here
 | MCP3008 ADC chip (DIP-16) | 8-channel analog-to-digital converter. Pi has no analog inputs, this fixes that. |
 | Small half-size breadboard | Solder-free assembly. |
 | 6 × jumper wires (6 colours) | Red, black, yellow, green, blue, purple — one per signal. |
-| Solar panel (2–5 V) | Sun station — light → electricity. |
-| Small DC hobby motor + propeller | Wind station — motion → electricity. |
 | Peltier tile (TEC1-12706) | Heat station — temperature gap → electricity. |
-| 1 lemon + zinc nail + copper coin | Lemon station — chemistry → electricity. |
-| Resistors | 2 × 22 kΩ, 3 × 10 kΩ, 1 × 1 kΩ (¼ W). |
-| Diodes | 4 × 1N4148 small signal. |
+| Resistors | 1 × 10 kΩ, 1 × 1 kΩ (¼ W). |
+| Diode | 1 × 1N4148 small signal. |
 | NPN transistor | 1 × 2N3904 (Heat amplifier). |
 
 No capacitors are required.
@@ -69,9 +66,6 @@ Read these before you start — most "why doesn't it work" questions trace back 
    notch up, **CH0–CH7 are on the LEFT** of the chip and
    **VDD / VREF / AGND / CLK / DOUT / DIN / CS / DGND are on the RIGHT.**
    The dashboard's wiring diagram is drawn in this orientation.
-9. **The solar panel produces ≲ 5 V open-circuit.** Bigger panels need
-   bigger divider resistors (see Debugging → Station 1 below).
-
 ---
 
 ## Wiring overview
@@ -91,14 +85,11 @@ All values quoted are in the wiring section of the dashboard's `🔌 Build` tab.
 | 19 | MOSI / GPIO10 | blue   | 11 | DIN |
 | 24 | CE0  / GPIO8  | purple | 10 | CS  |
 
-**Stations → MCP3008 (per-station signal-conditioning circuits):**
+**Peltier → MCP3008 (signal-conditioning circuit):**
 
 | Station | Channel | Conditioning |
 |---|---|---|
-| ☀️ Sun  | CH0 (pin 1) | R1 22 kΩ + R2 10 kΩ divider, D1 1N4148 to CH0 |
-| 💨 Wind | CH1 (pin 2) | D2 1N4148 rectifier, R3 22 kΩ + R4 10 kΩ divider |
 | 🔥 Heat | CH2 (pin 3) | D3 1N4148, R5 10 kΩ base resistor, Q1 2N3904 amp, R6 1 kΩ pull-up to 3V3 |
-| 🍋 Lemon | CH3 (pin 4) | D4 1N4148 protection only |
 
 ---
 
@@ -178,24 +169,20 @@ background thread that reads the MCP3008 over SPI every 300 ms.
 | Path | Returns |
 |---|---|
 | `/` (or anything not below) | The dashboard HTML (with React/Babel CDN URLs rewritten to `/vendor/*` when those files exist). Catch-all behaviour is what makes captive-portal probes from iOS / Android / Windows pop the dashboard automatically. |
-| `/api/readings` | JSON `{solar, wind, heat, lemon, ts, source: "spi"}`. Sampled every ~0.3 s; polled by the dashboard every 500 ms. |
+| `/api/readings` | JSON `{heat, ts, source: "spi"}`. Sampled every ~0.3 s; polled by the dashboard every 500 ms. |
 | `/api/wifi`  | JSON `{ssid, password, ip, hostname, captive}`. Used by the dashboard to render the "Show your friends how to join" card and the QR code's caption. |
 | `/api/wifi-qr.svg` | SVG QR code encoding `WIFI:T:WPA;S:<ssid>;P:<password>;;` — your phone joins automatically when it scans it. |
 | `/api/health` | `{"ok":true}` |
 | `/vendor/<file>` | React, ReactDOM, Babel-standalone if they've been vendored. |
 
-**ADC scaling.** Each station's raw 10-bit ADC reading (`0..1023` → `0..3.3 V`)
-is multiplied by a per-station factor:
+**ADC scaling.** The raw 10-bit ADC reading (`0..1023` → `0..3.3 V`) is
+multiplied by a per-station factor:
 
 ```python
-"solar": {"channel": 0, "scale": 3.2,  "unit": "V"},   # un-divide R1+R2 / R2 = 32/10
-"wind":  {"channel": 1, "scale": 3.2,  "unit": "V"},
 "heat":  {"channel": 2, "scale": 1000, "unit": "mV"},
-"lemon": {"channel": 3, "scale": 1.0,  "unit": "V"},
 ```
 
-If you change the wiring (different divider, no divider) update this dict and
-restart the service.
+If you change the wiring update this dict and restart the service.
 
 ### Dashboard
 
@@ -204,24 +191,24 @@ sections (with a sticky anchor nav):
 
 - **📶 Join** — Wi-Fi SSID, password, QR code.
 - **🕵️ Mission** — short intro card.
-- **📊 Dashboard** — 4 ring gauges + energy-flow tiles + live status badge.
-- **⚡ Stations** — the 4 overview cards, then four detailed sections (one
-  per station) each with a live reading, a 30-second voltage graph, "how to
-  use this station" bullets, and 3 real-life example animations.
+- **📊 Dashboard** — ring gauge + energy-flow tile + live status badge.
+- **⚡ Station** — overview card and a detailed Heat section with a live
+  reading, a 30-second voltage graph, "how to use this station" bullets,
+  and 3 real-life example animations.
 - **🔌 Build** — annotated wiring diagram (Pi 40-pin header on the right,
-  MCP3008 in physical orientation in the middle, station inputs on the
-  left), per-port description list, 4 station signal-conditioning sub-circuits,
-  wire colour key, extra parts list, 11-step build guide, safety rules.
+  MCP3008 in physical orientation in the middle, Peltier input on the
+  left), per-port description list, the Heat signal-conditioning sub-circuit,
+  wire colour key, extra parts list, build guide, safety rules.
 - **🧰 Parts** — the headline parts list.
 
 The dashboard polls `/api/readings` every 500 ms and keeps a rolling 60-sample
-history per station, which feeds the time-series graph component.
+history, which feeds the time-series graph component.
 
 ---
 
 ## Debugging
 
-### "All four channels read 0.0 V on the dashboard"
+### "Heat reads 0.0 mV on the dashboard"
 
 This is the classic "chip can't talk to Pi" symptom. From an SSH session on the Pi:
 
@@ -231,44 +218,23 @@ curl http://localhost/api/readings   # check JSON has source: "spi"
 python3 -c "
 import spidev
 s = spidev.SpiDev(); s.open(0,0); s.max_speed_hz = 1350000
-for ch in range(4):
-    r = s.xfer2([1,(8+ch)<<4,0])
-    print(f'CH{ch} bytes={r}')
+r = s.xfer2([1,(8+2)<<4,0])
+print(f'CH2 bytes={r}')
 "
 ```
 
-- `bytes=[0,0,0]` for every channel → MISO is the problem. Most common causes
-  (in order):
+- `bytes=[0,0,0]` → MISO is the problem. Most common causes (in order):
   1. Chip is plugged in with notch DOWN. Rotate 180° (and move all wires).
   2. Pi wires went onto the chip's CH side instead of VDD/SPI side. Verify
      against the wiring diagram in the Build tab.
   3. Missing VREF jumper (pin 16 → pin 15).
   4. Missing AGND jumper (pin 9 → pin 14).
   5. MISO wire in the wrong hole (Pi pin 21 → MCP pin 12).
-- `bytes=[255,255,255]` everywhere → MISO floating. Same fix as above but
-  the line is open instead of shorted.
-
-### "Only Station 1 (Sun) reads 0"
-
-The panel is producing voltage but the chip's pin doesn't see it. Probe each
-node in the solar circuit with a multimeter (black probe on GND):
-
-| Test point | Expected |
-|---|---|
-| Panel + terminal | ≥ 1.5 V in good light |
-| R1's panel-side leg | same as above |
-| Junction of R1, R2, D1 | about ⅓ of panel voltage |
-| D1 cathode (stripe side) | junction − 0.2 V |
-| MCP pin 1 (CH0) | same as D1 cathode |
-
-If junction collapses to 0.4 V or so when R2 is connected, your panel is too
-small to drive the 32 kΩ divider. Either:
-
-- Replace R1, R2 with bigger values (e.g. R1 = 220 kΩ, R2 = 100 kΩ — same
-  ratio, 10× less loading), OR
-- Skip the divider entirely (panel + → D1 → CH0) and set `"scale": 1.0` for
-  solar in `energy_detective.py`. Safe if the panel's open-circuit voltage
-  never exceeds 3.3 V.
+- `bytes=[255,255,255]` → MISO floating. Same fix as above but the line is
+  open instead of shorted.
+- If SPI works but CH2 stays pinned near 3.3 V, the Peltier mini-circuit
+  isn't pulling Q1's base — check D3 polarity and that Q1's E-B-C pins
+  aren't reversed.
 
 ### "The dashboard shows 'no Pi connection — retrying…'"
 
