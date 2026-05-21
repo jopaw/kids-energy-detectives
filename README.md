@@ -195,20 +195,31 @@ If you change the wiring update this dict and restart the service.
 `kids-energy.html` is a single-file React app served at `/`. Top-to-bottom
 sections (with a sticky anchor nav):
 
-- **📶 Join** — Wi-Fi SSID, password, QR code.
-- **🕵️ Mission** — short intro card.
-- **📊 Dashboard** — ring gauge + energy-flow tile + live status badge.
-- **⚡ Station** — overview card and a detailed Heat section with a live
-  reading, a 30-second voltage graph, "how to use this station" bullets,
-  and 3 real-life example animations.
-- **🔌 Build** — annotated wiring diagram (Pi 40-pin header on the right,
-  MCP3008 in physical orientation in the middle, Peltier input on the
-  left), per-port description list, the Heat signal-conditioning sub-circuit,
-  wire colour key, extra parts list, build guide, safety rules.
-- **🧰 Parts** — the headline parts list.
+- **📶 Join** (only shown when the Pi is in hotspot mode) — Wi-Fi SSID,
+  password, QR code.
+- **🧪 Experiment** — the headline elephant-toothpaste + Peltier hero:
+  big live reading with a plain-language status badge
+  (`No reading yet` ⏳ → `Cool` 🧊 → `Warming up` 🌡️ → `Warm` 🔥 → `HOT!` 🔥),
+  the foamy-flask SVG animation, the kid-safe recipe and the inline
+  safety note.
+- **📊 Voltage** — 30-second time-series of the heat reading.
+- **✨ Try more** — short list of other things to try (warm finger,
+  warm spoon, ice cube, flip the tile).
+- **🤔 How it works** — the Seebeck-effect explainer plus three
+  real-life example animations (power plant, geothermal, body-heat
+  watch).
+- **🔌 Build** — a collapsible "For builders" panel containing the
+  Peltier signal-conditioning sub-circuit, the annotated Pi ↔ MCP3008
+  wiring diagram, the parts list and the safety rules. Tucked away
+  behind a `<details>` so it doesn't dominate the page for kids; the
+  sticky-nav "Build" link auto-opens it on navigation.
 
 The dashboard polls `/api/readings` every 500 ms and keeps a rolling 60-sample
-history, which feeds the time-series graph component.
+history, which feeds the time-series graph component. The connection state
+exposed to the UI is a four-state FSM — `waiting` (no sample yet), `live`
+(fresh data), `stale` (was live, last few polls failed) and `offline`
+(sustained failure) — so a single transient blip doesn't flip the badge
+back to a contradictory "waiting" while the last reading is still on screen.
 
 ---
 
@@ -232,7 +243,8 @@ print(f'CH1 bytes={r}')
 - `bytes=[0,0,0]` → MISO is the problem. Most common causes (in order):
   1. Chip is plugged in with notch DOWN. Rotate 180° (and move all wires).
   2. Pi wires went onto the chip's CH side instead of VDD/SPI side. Verify
-     against the wiring diagram in the Build tab.
+     against the wiring diagram in the **"🔌 For builders"** panel
+     (expand it from the bottom of the dashboard).
   3. Missing VREF jumper (pin 16 → pin 15).
   4. Missing AGND jumper (pin 9 → pin 14).
   5. MISO wire in the wrong hole (Pi pin 21 → MCP pin 12).

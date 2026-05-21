@@ -262,12 +262,13 @@
     font-size: 0.95rem; color: #cfd8e3; letter-spacing: 0.02em;
   }
   .live-reading .live-tag {
-    background: #06d6a0; color: #052e2a;
     padding: 3px 10px; border-radius: 999px;
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
-    animation: blink 1.6s infinite ease-in-out;
   }
-  .live-reading .live-tag.waiting { background: #ffb703; color: #3a2400; }
+  .live-reading .live-tag.tag-live    { background: #06d6a0; color: #052e2a; animation: blink 1.6s infinite ease-in-out; }
+  .live-reading .live-tag.tag-stale   { background: #ffb703; color: #3a2400; }
+  .live-reading .live-tag.tag-waiting { background: #cfd8e3; color: #1c2541; }
+  .live-reading .live-tag.tag-offline { background: #ef476f; color: #fff; }
   .live-reading .live-number {
     display: flex; align-items: baseline; gap: 8px;
     font-variant-numeric: tabular-nums;
@@ -284,10 +285,17 @@
     display: flex; align-items: center; gap: 8px;
   }
   .live-reading .live-status .status-emoji { font-size: 1.8rem; }
+  .live-reading.status-unknown .live-status { color: #cfd8e3; }
   .live-reading.status-cool    .live-status { color: #8ddcff; }
   .live-reading.status-warming .live-status { color: #ffd166; }
   .live-reading.status-warm    .live-status { color: #ffb703; }
   .live-reading.status-hot     .live-status { color: #ff6b6b; }
+  /* When the data is stale, dim the number/status so it's clear the
+     value is not fresh, even though we keep showing it. */
+  .live-reading.source-stale .live-number,
+  .live-reading.source-stale .live-status { opacity: 0.55; }
+  .live-reading.source-offline .live-number,
+  .live-reading.source-offline .live-status { opacity: 0.4; }
   .live-reading .live-bar {
     height: 14px;
     background: rgba(255,255,255,0.12);
@@ -617,7 +625,7 @@
 <div id="root"></div>
 
 <script type="text/babel" data-presets="react">
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const formatReading = (v, unit) => v.toFixed(unit === 'mV' ? 0 : 2);
@@ -720,11 +728,22 @@ const STATION_TECH = {
 
 const HISTORY_LENGTH = 60;  // ~30 s at 500 ms per sample — used by the time-series graph
 
+// Source is a finite state machine:
+//   'waiting' — never received a sample yet
+//   'live'    — a real sample arrived within the last few polls
+//   'stale'   — was live, but the last few polls failed (still show the
+//               last known number, but mark it as not-fresh)
+//   'offline' — sustained failure, we're back to a true disconnect
+const STALE_AFTER_FAILS = 3;       // ≈ 3 × 500 ms of consecutive failures
+const OFFLINE_AFTER_FAILS = 8;     // ≈ 3 × 500 ms + 5 × 3 s back-off
+
 function useLiveReadings() {
-  const [readings, setReadings] = useState(() =>
-    Object.fromEntries(STATIONS.map(s => [s.id, 0]))
-  );
-  const [source, setSource] = useState('offline');
+  // Start empty, NOT seeded to 0. Seeding to 0 makes a working Pi reading a
+  // genuinely cool tile (0 mV) indistinguishable from the never-connected
+  // state, and also hides API-contract drift (server stops sending 'heat')
+  // behind a silent 0 mV.
+  const [readings, setReadings] = useState({});
+  const [source, setSource] = useState('waiting');
   const [history, setHistory] = useState(() =>
     Object.fromEntries(STATIONS.map(s => [s.id, []]))
   );
@@ -732,6 +751,8 @@ function useLiveReadings() {
   useEffect(() => {
     let cancelled = false;
     let timer = null;
+    let consecutiveFails = 0;
+    let everConnected = false;
 
     const step = async () => {
       if (cancelled) return;
@@ -740,34 +761,59 @@ function useLiveReadings() {
         if (!r.ok) throw new Error('http ' + r.status);
         const j = await r.json();
         if (cancelled) return;
+        let gotValidSample = false;
         setReadings(prev => {
           let changed = false;
           const next = { ...prev };
           STATIONS.forEach(s => {
-            if (typeof j[s.id] === 'number' && j[s.id] !== prev[s.id]) {
-              next[s.id] = j[s.id];
-              changed = true;
+            const v = j[s.id];
+            // Number.isFinite excludes NaN and Infinity (typeof both === 'number');
+            // those would silently break heatStatus() and TimeSeriesGraph.
+            if (Number.isFinite(v)) {
+              gotValidSample = true;
+              if (v !== prev[s.id]) {
+                next[s.id] = v;
+                changed = true;
+              }
             }
           });
           return changed ? next : prev;
         });
         setHistory(prev => {
+          let changed = false;
           const next = { ...prev };
           STATIONS.forEach(s => {
-            if (typeof j[s.id] === 'number') {
-              const arr = (prev[s.id] || []).concat(j[s.id]);
+            const v = j[s.id];
+            if (Number.isFinite(v)) {
+              const arr = (prev[s.id] || []).concat(v);
               if (arr.length > HISTORY_LENGTH) arr.splice(0, arr.length - HISTORY_LENGTH);
               next[s.id] = arr;
+              changed = true;
             }
           });
-          return next;
+          return changed ? next : prev;
         });
-        setSource('pi');
+        if (gotValidSample) {
+          everConnected = true;
+          consecutiveFails = 0;
+          setSource('live');
+        }
         timer = setTimeout(step, 500);
       } catch {
         if (cancelled) return;
-        setSource('offline');
-        timer = setTimeout(step, 3000);  // back off and retry when the Pi isn't reachable
+        consecutiveFails += 1;
+        // Don't flip to a "waiting/offline" badge on a single transient
+        // blip — kids see a real number with a contradicting "WAITING"
+        // label otherwise. Stay in the last known state until several
+        // polls have failed in a row.
+        if (!everConnected) {
+          setSource('waiting');
+        } else if (consecutiveFails >= OFFLINE_AFTER_FAILS) {
+          setSource('offline');
+        } else if (consecutiveFails >= STALE_AFTER_FAILS) {
+          setSource('stale');
+        }
+        timer = setTimeout(step, 3000);  // back off and retry
       }
     };
 
@@ -873,18 +919,39 @@ const ExampleAnims = {
 
 // Translate a raw mV reading into a kid-readable status. Plain-language
 // labels matter for accessibility: kids (and screen-reader users) can
-// understand "HOT!" before they parse "1843 mV".
+// understand "HOT!" before they parse "1843 mV". `value` may be undefined
+// when no sample has arrived yet — return a distinct "unknown" status so
+// the UI doesn't pretend a cool 0 mV reading is in hand.
 function heatStatus(value) {
+  if (!Number.isFinite(value)) {
+    return { id: 'unknown', emoji: '⏳', label: 'No reading yet', pct: 0 };
+  }
   const pct = clamp(value / 3000, 0, 1) * 100;
-  if (value >= 1500) return { id: 'hot',     emoji: '🔥', label: 'HOT!',        pct };
-  if (value >= 500)  return { id: 'warm',    emoji: '🔥', label: 'Warm',        pct };
+  if (value >= 1500) return { id: 'hot',     emoji: '🔥',  label: 'HOT!',        pct };
+  if (value >= 500)  return { id: 'warm',    emoji: '🔥',  label: 'Warm',        pct };
   if (value >= 100)  return { id: 'warming', emoji: '🌡️', label: 'Warming up',  pct };
-  return                  { id: 'cool',    emoji: '🧊', label: 'Cool',          pct };
+  return                  { id: 'cool',    emoji: '🧊',  label: 'Cool',          pct };
 }
+
+const SOURCE_BADGE = {
+  live:    { label: 'LIVE',    cls: 'live'    },
+  stale:   { label: 'STALE',   cls: 'stale'   },
+  waiting: { label: 'WAITING', cls: 'waiting' },
+  offline: { label: 'OFFLINE', cls: 'offline' },
+};
 
 function ExperimentHero({ value, source }) {
   const status = heatStatus(value);
+  const badge = SOURCE_BADGE[source] || SOURCE_BADGE.waiting;
   const ToothpasteAnim = ExampleAnims.ElephantToothpaste;
+  const hasReading = Number.isFinite(value);
+  const numberText = hasReading ? formatReading(value, 'mV') : '—';
+  const footText = (
+    source === 'live'    ? 'Pi Zero 2 W · MCP3008 channel 1 · sampled every 0.5 s'
+  : source === 'stale'   ? 'Last reading shown. Lost contact with the Pi — retrying…'
+  : source === 'offline' ? "Can't reach the Pi. Check the EnergyDetectives Wi-Fi and that the Pi is on."
+  :                        'Waiting for the first reading from the Pi…'
+  );
   return (
     <section
       id="experiment"
@@ -904,19 +971,19 @@ function ExperimentHero({ value, source }) {
         </div>
 
         <div
-          className={`live-reading status-${status.id}`}
+          className={`live-reading status-${status.id} source-${badge.cls}`}
           role="status"
           aria-live="polite"
           aria-atomic="true"
         >
           <div className="live-head">
             <span>Live heat reading</span>
-            <span className={`live-tag${source === 'pi' ? '' : ' waiting'}`}>
-              {source === 'pi' ? 'LIVE' : 'WAITING'}
+            <span className={`live-tag tag-${badge.cls}`}>
+              {badge.label}
             </span>
           </div>
           <div className="live-number">
-            <span className="num">{formatReading(value, 'mV')}</span>
+            <span className="num">{numberText}</span>
             <span className="unit">mV</span>
           </div>
           <div className="live-status">
@@ -926,11 +993,7 @@ function ExperimentHero({ value, source }) {
           <div className="live-bar" aria-hidden="true">
             <span style={{ width: status.pct + '%' }} />
           </div>
-          <div className="live-foot">
-            {source === 'pi'
-              ? 'Pi Zero 2 W · MCP3008 channel 1 · sampled every 0.5 s'
-              : 'Waiting for the Pi — make sure you are on the EnergyDetectives Wi-Fi.'}
-          </div>
+          <div className="live-foot">{footText}</div>
         </div>
       </div>
 
@@ -955,7 +1018,14 @@ function TimeSeriesGraph({ data, color, unit, min, max }) {
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
 
-  if (!data || data.length < 2) {
+  // Defensive: filter out NaN/Infinity. typeof NaN === 'number' so the
+  // upstream `Number.isFinite` guard catches them, but if a future caller
+  // (or a debug session) hands in a poisoned array, Math.min/Math.max
+  // would propagate NaN through every coordinate and the polyline would
+  // silently render as 'NaN,NaN ...' — i.e. the graph disappears with no
+  // error. Stripping non-finite values keeps the rest of the trace.
+  const safeData = (data || []).filter(Number.isFinite);
+  if (safeData.length < 2) {
     return (
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Waiting for the first samples from the Pi" style={{ width: '100%', height: 'auto', background: '#fafaf2', borderRadius: 8 }}>
         <text x={W/2} y={H/2} textAnchor="middle" fill="#666" fontSize="13">
@@ -964,18 +1034,18 @@ function TimeSeriesGraph({ data, color, unit, min, max }) {
       </svg>
     );
   }
-  const latest = data[data.length - 1];
+  const latest = safeData[safeData.length - 1];
   const summary = `Heat reading over the last ${Math.round(HISTORY_LENGTH * 0.5)} seconds. Latest value ${formatReading(latest, unit)} ${unit}.`;
 
-  const N = data.length;
-  const lo = Math.min(min, ...data);
-  const hi = Math.max(max, ...data, lo + 0.001);
+  const N = safeData.length;
+  const lo = Math.min(min, ...safeData);
+  const hi = Math.max(max, ...safeData, lo + 0.001);
   const xMap = (i) => PAD_L + (((HISTORY_LENGTH - N) + i) / (HISTORY_LENGTH - 1)) * innerW;
   const yMap = (v) => PAD_T + innerH - ((v - lo) / (hi - lo)) * innerH;
 
-  const points = data.map((v, i) => `${xMap(i).toFixed(1)},${yMap(v).toFixed(1)}`).join(' ');
+  const points = safeData.map((v, i) => `${xMap(i).toFixed(1)},${yMap(v).toFixed(1)}`).join(' ');
   const lastX = xMap(N - 1);
-  const lastY = yMap(data[N - 1]);
+  const lastY = yMap(safeData[N - 1]);
 
   const ticks = Array.from({ length: 5 }, (_, i) => lo + (i / 4) * (hi - lo));
 
@@ -1104,9 +1174,23 @@ function LearnSection({ station }) {
 
 function BuildDetails({ station }) {
   const tech = STATION_TECH[station.id];
+  const detailsRef = useRef(null);
+  // Auto-open the details when the user navigates here via the sticky nav
+  // (or arrives with #build in the URL). Without this the nav link silently
+  // lands on a collapsed disclosure and the wiring diagram is invisible.
+  useEffect(() => {
+    const openIfTargeted = () => {
+      if (window.location.hash === '#build' && detailsRef.current) {
+        detailsRef.current.open = true;
+      }
+    };
+    openIfTargeted();
+    window.addEventListener('hashchange', openIfTargeted);
+    return () => window.removeEventListener('hashchange', openIfTargeted);
+  }, []);
   return (
     <section id="build" aria-labelledby="build-title">
-      <details className="build-details">
+      <details className="build-details" ref={detailsRef}>
         <summary aria-label="Toggle the builders section">
           <span id="build-title" role="heading" aria-level="2">🔌 For builders — wiring, parts &amp; circuit</span>
         </summary>
@@ -1373,7 +1457,7 @@ function WiringDiagram() {
       </div>
 
       <p style={{ marginTop: 14, padding: '10px 12px', background: '#eaf6ff', borderLeft: '6px solid #4cc9f0', borderRadius: 10 }}>
-        ⚡ <strong>Looking for the Heat station's parts, mini-schematic and build step?</strong> Scroll up to the Heat station card above — parts, wiring and build instructions are all bundled together there.
+        ⚡ <strong>The Heat station's parts, mini-schematic and build step</strong> are right above this diagram (in the same "For builders" panel).
       </p>
 
       <h3>Wire colour key</h3>
@@ -1430,6 +1514,7 @@ function WiringDiagram() {
 const NAV_LINKS = [
   { href: '#experiment', label: '🧪 Experiment' },
   { href: '#voltage',    label: '📊 Voltage' },
+  { href: '#explore',    label: '✨ Try more' },
   { href: '#learn',      label: '🤔 How it works' },
   { href: '#build',      label: '🔌 Build' },
 ];
@@ -1451,7 +1536,21 @@ function App() {
   const { readings, source, history } = useLiveReadings();
   const wifi = useWifiInfo();
   const station = STATIONS[0];
-  const value = readings[station.id] || 0;
+  // Defensive: an empty STATIONS array (future refactor) would otherwise
+  // throw "Cannot read properties of undefined (reading 'id')" and blank
+  // the dashboard. Render a clear empty state instead.
+  if (!station) {
+    return (
+      <div className="wrap">
+        <p role="alert">No stations are configured. Add an entry to <code>STATIONS</code> to see the dashboard.</p>
+      </div>
+    );
+  }
+  // Pass the raw reading through (may be undefined until the first sample
+  // arrives). ExperimentHero and TimeSeriesGraph each render a distinct
+  // "no data yet" state — collapsing undefined to 0 hid the difference
+  // between "Pi sitting on a cool table" and "API contract drifted".
+  const value = readings[station.id];
   const heatHistory = history[station.id] || [];
 
   return (

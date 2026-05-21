@@ -121,7 +121,15 @@ def sampler_loop() -> None:
             try:
                 raw = _read_mcp3008(spi, cfg["channel"])
                 volts = (raw / ADC_MAX) * VREF
-            except OSError:
+            except Exception as e:
+                # Catch broadly so a transient SPI hiccup (driver glitch,
+                # short response from spi.xfer2, ValueError on a bad
+                # channel) can't kill the sampler thread silently. We
+                # log a single line and substitute 0 V for this tick;
+                # next tick we try again. Letting the loop die would
+                # freeze /api/readings at the last value forever with
+                # no signal to the user.
+                print(f"[sampler] {name} read failed: {e!r}", file=sys.stderr)
                 volts = 0.0
             snapshot[name] = round(volts * cfg["scale"], 3)
         with _readings_lock:
