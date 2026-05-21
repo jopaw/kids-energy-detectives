@@ -34,9 +34,8 @@ README.md                        # you are here
 | Small half-size breadboard | Solder-free assembly. |
 | 6 × jumper wires (6 colours) | Red, black, yellow, green, blue, purple — one per signal. |
 | Peltier tile (TEC1-12706) | Heat station — temperature gap → electricity. |
-| Resistors | 1 × 10 kΩ, 1 × 1 kΩ (¼ W). |
-| Diode | 1 × 1N4148 small signal. |
-| NPN transistor | 1 × 2N3904 (Heat amplifier). |
+| Resistors | 1 × 1 kΩ (R1, series limiter), 1 × 10 kΩ (R2, pull-down). ¼ W is fine. |
+| Diodes | 2 × 1N4148 small signal (D1 reverse-V clamp, D2 over-V clamp). |
 
 No capacitors are required.
 
@@ -89,7 +88,14 @@ All values quoted are in the wiring section of the dashboard's `🔌 Build` tab.
 
 | Station | Channel | Conditioning |
 |---|---|---|
-| 🔥 Heat | CH2 (pin 3) | D3 1N4148, R5 10 kΩ base resistor, Q1 2N3904 amp, R6 1 kΩ pull-up to 3V3 |
+| 🔥 Heat | CH1 (pin 2) | R1 1 kΩ series, R2 10 kΩ pull-down, D1 1N4148 clamp to GND (anode at GND), D2 1N4148 clamp to 3V3 (cathode at 3V3) |
+
+The Peltier voltage drives CH1 directly — no transistor amplifier. A
+TEC1-12706 puts out ~50 mV/K, so a warm bottle from an exothermic
+reaction (elephant toothpaste, hot water) easily reaches the 1–3 V
+range the ADC reads well. R1 + the two 1N4148 clamps protect the chip
+pin against a flipped tile (negative voltage) and against a very hot
+reaction (voltages above the 3.3 V rail).
 
 ---
 
@@ -179,7 +185,7 @@ background thread that reads the MCP3008 over SPI every 300 ms.
 multiplied by a per-station factor:
 
 ```python
-"heat":  {"channel": 2, "scale": 1000, "unit": "mV"},
+"heat":  {"channel": 1, "scale": 1000, "unit": "mV"},
 ```
 
 If you change the wiring update this dict and restart the service.
@@ -218,8 +224,8 @@ curl http://localhost/api/readings   # check JSON has source: "spi"
 python3 -c "
 import spidev
 s = spidev.SpiDev(); s.open(0,0); s.max_speed_hz = 1350000
-r = s.xfer2([1,(8+2)<<4,0])
-print(f'CH2 bytes={r}')
+r = s.xfer2([1,(8+1)<<4,0])
+print(f'CH1 bytes={r}')
 "
 ```
 
@@ -232,9 +238,12 @@ print(f'CH2 bytes={r}')
   5. MISO wire in the wrong hole (Pi pin 21 → MCP pin 12).
 - `bytes=[255,255,255]` → MISO floating. Same fix as above but the line is
   open instead of shorted.
-- If SPI works but CH2 stays pinned near 3.3 V, the Peltier mini-circuit
-  isn't pulling Q1's base — check D3 polarity and that Q1's E-B-C pins
-  aren't reversed.
+- If SPI works but CH1 stays pinned near 0 mV with a known-hot Peltier
+  side, the tile is probably wired backwards — D1 is clamping the
+  negative voltage. Swap the two Peltier wires and try again.
+- If CH1 saturates at 3.3 V on a mild source, double-check that D2's
+  stripe is on the 3V3 side, not the signal side (otherwise D2 just
+  shorts 3V3 into the chip pin).
 
 ### "The dashboard shows 'no Pi connection — retrying…'"
 

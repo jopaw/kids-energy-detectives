@@ -51,10 +51,13 @@ VREF = 3.3
 ADC_MAX = 1023.0
 SAMPLE_INTERVAL = 0.3
 
-# Channel + display scaling. The Heat station reports the transistor
-# collector voltage in millivolts.
+# Channel + display scaling. The Peltier drives CH1 directly (no
+# amplifier) through R1 + clamp diodes, so the raw ADC voltage IS the
+# Peltier voltage. Report it in millivolts for readability — typical
+# body-heat differences land in the tens of mV, an exothermic reaction
+# like elephant toothpaste pushes it up into the volts.
 STATIONS = {
-    "heat":  {"channel": 2, "scale": 1000, "unit": "mV"},
+    "heat":  {"channel": 1, "scale": 1000, "unit": "mV"},
 }
 
 # Captive-portal probe URLs from iOS / macOS / Android / Windows. We deliberately

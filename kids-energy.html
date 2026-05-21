@@ -512,6 +512,31 @@
   @keyframes steam { 0% { transform: translateY(0); opacity: 0; } 30% { opacity: 0.8; } 100% { transform: translateY(-30px); opacity: 0; } }
   .steam { animation: steam 2.6s ease-out infinite; }
 
+  /* Foam erupt (elephant toothpaste) */
+  @keyframes erupt {
+    0%   { transform: translateY(14px) scale(0.3); opacity: 0; }
+    20%  { opacity: 1; }
+    60%  { transform: translateY(-6px) scale(1.15); opacity: 1; }
+    100% { transform: translateY(-22px) scale(1.4); opacity: 0; }
+  }
+  .erupt { animation: erupt 2.8s ease-out infinite; transform-origin: center bottom; }
+
+  /* Foam drip down flask sides */
+  @keyframes drip {
+    0%   { transform: translateY(-10px); opacity: 0; }
+    25%  { opacity: 0.95; }
+    100% { transform: translateY(14px); opacity: 0; }
+  }
+  .drip { animation: drip 2.8s ease-in infinite; }
+
+  /* Heat wiggle for transferring heat into the Peltier */
+  @keyframes wiggle {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-2px); }
+    75%      { transform: translateX(2px); }
+  }
+  .wiggle { animation: wiggle 0.6s ease-in-out infinite; }
+
   /* Slide highlight */
   .live-tag {
     display: inline-block;
@@ -546,9 +571,9 @@ const STATIONS = [
     cls: 'heat',
     from: 'Heat',
     to: 'Electricity',
-    sensor: 'Peltier (TEC1-12706) + MCP3008 channel 2',
+    sensor: 'Peltier (TEC1-12706) + MCP3008 channel 1',
     unit: 'mV',
-    range: [10, 850],
+    range: [0, 3000],
     color: '#ff6b6b',
     blurb: 'A Peltier tile makes electricity when one side is warm and the other is cool. Even a warm hand can power an LED!',
     operate: [
@@ -556,12 +581,14 @@ const STATIONS = [
       { icon: '🌡️', text: <><strong>It's the gap that matters.</strong> A Peltier doesn't care how warm the whole tile is — only the <em>difference</em> between top and bottom. A small difference = small voltage. A big difference = big voltage.</> },
       { icon: '🥄', text: <><strong>Try a warm spoon.</strong> Dip a metal spoon in warm (not hot) water, dry it, and rest it on top of the tile. The big temperature difference between spoon and table makes the dashboard jump.</> },
       { icon: '🧊', text: <><strong>Add ice for a giant jump.</strong> Place an ice cube on one side and a warm spoon on the other for the biggest reading you can get.</> },
-      { icon: '🔄', text: <><strong>Flip the tile over.</strong> Swap which side is hot and which is cold — the voltage flips polarity! The transistor amplifier turns this into either a very small or very large reading on the dashboard.</> },
+      { icon: '🔄', text: <><strong>Flip the tile over.</strong> Swap which side is hot and which is cold — the voltage flips polarity. The protection diode D1 clamps that backwards voltage to near 0 mV, so the dashboard drops to almost nothing until you flip the tile back the right way.</> },
+      { icon: '🧪', text: <><strong>Measure the elephant toothpaste reaction!</strong> The classic foam-erupting demo is <em>exothermic</em> — its bottle gets noticeably warm. Press the Peltier tile's flat face against the side of the bottle (the other face stays on the cool table) and watch the dashboard spike as the reaction releases heat. <em>Always do this with a grown-up:</em> kid-safe recipe uses 3% (drug-store) hydrogen peroxide, dish soap, food colouring and a packet of yeast mixed with warm water — never the 30%+ "concentrated" peroxide, which burns skin.</> },
     ],
     examples: [
       { title: 'Power Plant',   why: 'Heat makes steam, steam spins turbines.', anim: 'PowerPlant' },
       { title: 'Geothermal',    why: 'Earth heat warms water deep underground.', anim: 'Geothermal' },
       { title: 'Body Heat Watch',why:'Tiny watches charge from your warm wrist.', anim: 'BodyHeat' },
+      { title: 'Elephant Toothpaste', why: 'Foamy chemistry that gets HOT — the Peltier feels it.', anim: 'ElephantToothpaste' },
     ],
   },
 ];
@@ -572,53 +599,63 @@ const STATIONS = [
 // across the dashboard and the wiring section.
 const STATION_TECH = {
   heat: {
-    channel: 'CH2',
-    mcpPin: 3,
+    channel: 'CH1',
+    mcpPin: 2,
     parts: [
-      { label: 'Peltier tile (TEC1-12706)', desc: 'A thermoelectric module. When one side is hotter than the other (Seebeck effect), it makes a small voltage — usually under 100 mV with body-heat differences.' },
-      { label: 'D3 (1N4148)', desc: 'Protection diode against accidental reverse polarity if the tile is flipped.' },
-      { label: 'R5 (10 kΩ)', desc: 'Base resistor for the transistor. Limits the small current flowing into Q1’s base so we don’t burn it out.' },
-      { label: 'Q1 (2N3904 NPN)', desc: 'Amplifier. The tiny Peltier voltage turns the transistor on a little; lots of bigger current flows from collector to emitter, making a much larger voltage swing for the chip to read.' },
-      { label: 'R6 (1 kΩ)', desc: 'Collector load resistor, pulled up to 3.3 V. When Q1 is off, the collector sits near 3.3 V. When Q1 turns on, current through R6 pulls the collector toward 0 V — that swing is what the chip measures.' },
+      { label: 'Peltier tile (TEC1-12706)', desc: 'A thermoelectric module. When one side is hotter than the other (Seebeck effect), it makes a voltage — about 50 mV per °C of temperature difference, so a hot elephant-toothpaste bottle (~30–60 °C above the table) easily produces 1.5–3 V.' },
+      { label: 'R1 (1 kΩ)', desc: 'Series current limiter. Sits between the Peltier and the chip pin. If the voltage ever shoots above the 3.3 V rail (or below 0 V), R1 limits the current that flows into the clamp diodes — protecting both them and the chip.' },
+      { label: 'R2 (10 kΩ)', desc: 'Pull-down to GND. Defines a 0 V reading when nothing is connected, and gives the chip pin a steady reference. 10 kΩ is high enough that it barely loads the Peltier (it draws only ~0.1 mA at 1 V).' },
+      { label: 'D1 (1N4148)', desc: 'Reverse-voltage clamp. Anode on GND, cathode on the signal node. If the Peltier is wired backwards (cold side warm, hot side cold) the node would try to go negative — D1 turns on and pins it at about −0.3 V, safe for the ADC.' },
+      { label: 'D2 (1N4148)', desc: 'Over-voltage clamp. Anode on the signal node, cathode on 3V3. If a very hot reaction pushes the Peltier above ~3.9 V, D2 turns on and shunts the excess into the 3V3 rail, protecting the chip pin (which is only rated to 3.3 V + 0.3 V).' },
     ],
     circuit: (
       <svg viewBox="0 0 360 220">
+        {/* 3V3 rail */}
         <line x1="36" y1="22" x2="320" y2="22" stroke="#e63946" strokeWidth="2" />
         <text x="14" y="26" fontSize="10" fill="#1c2541" fontWeight="bold">3V3</text>
-        <rect x="14" y="100" width="64" height="40" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.5" />
-        <text x="46" y="124" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Peltier</text>
-        <text x="46" y="94" textAnchor="middle" fontSize="9" fill="#1c2541">hot ↔ cold</text>
-        <line x1="78" y1="110" x2="106" y2="110" stroke="#e63946" strokeWidth="2" />
-        <polygon points="106,102 106,118 120,110" fill="#1c2541" />
-        <line x1="120" y1="102" x2="120" y2="118" stroke="#1c2541" strokeWidth="2" />
-        <text x="113" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">D3 · 1N4148</text>
-        <line x1="120" y1="110" x2="142" y2="110" stroke="#e63946" strokeWidth="2" />
-        <polyline points="142,110 148,102 156,118 164,102 172,118 180,110" stroke="#1c2541" strokeWidth="2" fill="none" />
-        <text x="160" y="94" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R5 · 10kΩ</text>
-        <line x1="180" y1="110" x2="222" y2="110" stroke="#1c2541" strokeWidth="2" />
-        <circle cx="246" cy="110" r="20" fill="none" stroke="#1c2541" strokeWidth="2" />
-        <line x1="222" y1="110" x2="234" y2="110" stroke="#1c2541" strokeWidth="2" />
-        <line x1="234" y1="96" x2="234" y2="124" stroke="#1c2541" strokeWidth="3" />
-        <line x1="234" y1="96" x2="252" y2="86" stroke="#1c2541" strokeWidth="2" />
-        <line x1="252" y1="86" x2="252" y2="22" stroke="#1c2541" strokeWidth="2" />
-        <line x1="234" y1="124" x2="252" y2="134" stroke="#1c2541" strokeWidth="2" />
-        <polygon points="244,130 254,136 246,128" fill="#1c2541" />
-        <line x1="252" y1="134" x2="252" y2="186" stroke="#000" strokeWidth="2" />
-        <text x="282" y="114" fontSize="10" fill="#1c2541" fontWeight="bold">Q1 · 2N3904</text>
-        <text x="282" y="128" fontSize="9" fill="#1c2541">(B-C-E)</text>
-        <polyline points="252,22 244,30 260,38 244,46 260,54 244,62 252,70" stroke="#1c2541" strokeWidth="2" fill="none" />
-        <text x="278" y="48" fontSize="9" fill="#1c2541" fontWeight="bold">R6 · 1kΩ</text>
-        <circle cx="252" cy="78" r="2.8" fill="#1c2541" />
-        <line x1="252" y1="78" x2="296" y2="78" stroke="#e63946" strokeWidth="2" />
-        <text x="332" y="82" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH2</text>
-        <line x1="46" y1="140" x2="46" y2="186" stroke="#000" strokeWidth="2" />
-        <line x1="46" y1="186" x2="320" y2="186" stroke="#000" strokeWidth="2" />
-        <polygon points="316,186 324,186 320,194" fill="#000" />
-        <text x="328" y="192" fontSize="9" fill="#1c2541">GND</text>
+        {/* Peltier */}
+        <rect x="14" y="92" width="64" height="40" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.5" />
+        <text x="46" y="116" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1c2541">Peltier</text>
+        <text x="46" y="86" textAnchor="middle" fontSize="9" fill="#1c2541">hot ↔ cold</text>
+        <text x="46" y="146" textAnchor="middle" fontSize="8" fill="#1c2541">+ above   − below</text>
+        {/* Peltier+ → R1 (series limiter) */}
+        <line x1="78" y1="104" x2="98" y2="104" stroke="#e63946" strokeWidth="2" />
+        <polyline points="98,104 104,96 112,112 120,96 128,112 136,104" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="117" y="88" textAnchor="middle" fontSize="9" fill="#1c2541" fontWeight="bold">R1 · 1kΩ</text>
+        {/* Main signal wire to CH1 */}
+        <line x1="136" y1="104" x2="296" y2="104" stroke="#e63946" strokeWidth="2" />
+        <text x="332" y="108" textAnchor="end" fontSize="11" fontWeight="bold" fill="#1c2541">→ CH1</text>
+        {/* D2: over-voltage clamp (node → 3V3, triangle points up, stripe at top) */}
+        <circle cx="168" cy="104" r="2.8" fill="#1c2541" />
+        <line x1="168" y1="104" x2="168" y2="80" stroke="#1c2541" strokeWidth="2" />
+        <polygon points="160,80 176,80 168,66" fill="#1c2541" />
+        <line x1="160" y1="66" x2="176" y2="66" stroke="#1c2541" strokeWidth="2" />
+        <line x1="168" y1="66" x2="168" y2="22" stroke="#1c2541" strokeWidth="2" />
+        <text x="180" y="74" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4148</text>
+        <text x="180" y="84" fontSize="8" fill="#1c2541">over-V clamp</text>
+        {/* D1: reverse-voltage clamp (GND → node, triangle points up, stripe at top) */}
+        <circle cx="222" cy="104" r="2.8" fill="#1c2541" />
+        <line x1="222" y1="104" x2="222" y2="128" stroke="#1c2541" strokeWidth="2" />
+        <line x1="214" y1="128" x2="230" y2="128" stroke="#1c2541" strokeWidth="2" />
+        <polygon points="214,144 230,144 222,128" fill="#1c2541" />
+        <line x1="222" y1="144" x2="222" y2="180" stroke="#000" strokeWidth="2" />
+        <text x="234" y="138" fontSize="9" fill="#1c2541" fontWeight="bold">D1 · 1N4148</text>
+        <text x="234" y="148" fontSize="8" fill="#1c2541">reverse-V clamp</text>
+        {/* R2 pull-down */}
+        <circle cx="272" cy="104" r="2.8" fill="#1c2541" />
+        <polyline points="272,104 264,112 280,120 264,128 280,136 264,144 272,152" stroke="#1c2541" strokeWidth="2" fill="none" />
+        <text x="288" y="132" fontSize="9" fill="#1c2541" fontWeight="bold">R2 · 10kΩ</text>
+        <line x1="272" y1="152" x2="272" y2="180" stroke="#000" strokeWidth="2" />
+        {/* Peltier − to GND */}
+        <line x1="46" y1="132" x2="46" y2="180" stroke="#000" strokeWidth="2" />
+        {/* GND rail */}
+        <line x1="46" y1="180" x2="320" y2="180" stroke="#000" strokeWidth="2" />
+        <polygon points="316,180 324,180 320,188" fill="#000" />
+        <text x="328" y="186" fontSize="9" fill="#1c2541">GND</text>
       </svg>
     ),
-    circuitNote: 'A Peltier tile only makes millivolts. Q1 (NPN) amplifies it — when the Peltier sees heat, Q1 turns on and the collector voltage drops, which CH2 reads. R5 limits base current, R6 is the collector load.',
-    build: <>Peltier + → D3 (1N4148) → R5 (10 kΩ) → Q1 base. Q1 emitter → GND. Q1 collector → R6 (1 kΩ) → 3V3 rail. From the collector: a wire to MCP <strong>pin 3</strong> (CH2). Peltier − to GND. (2N3904 pin order with flat side facing you is E-B-C.)</>,
+    circuitNote: 'Straight-through circuit — the Peltier voltage goes directly to CH1 through R1. The pair of 1N4148 clamp diodes catches voltages outside 0–3.3 V (D1 stops negative spikes from a flipped tile; D2 stops a very hot reaction from pushing past the 3V3 rail). R2 holds the line at 0 V when no Peltier is plugged in.',
+    build: <>Peltier + → R1 (1 kΩ) → signal node. From the node: a wire straight to MCP <strong>pin 2</strong> (CH1); D2 (1N4148, stripe pointing up toward 3V3) to the 3V3 rail; D1 (1N4148, stripe pointing up toward the node) coming from GND; and R2 (10 kΩ) down to GND. Peltier − to GND. No transistor needed — the Peltier drives CH1 directly.</>,
   },
 };
 
@@ -740,6 +777,55 @@ const ExampleAnims = {
       <rect x="80" y="50" width="40" height="20" rx="3" fill="#4cc9f0" />
       <text className="flicker" x="100" y="64" textAnchor="middle" fontFamily="monospace" fill="#fff" fontSize="10">12:00</text>
       <g className="steam"><ellipse cx="100" cy="34" rx="8" ry="4" fill="#ff6b6b" opacity=".6" /></g>
+    </svg>
+  ),
+  ElephantToothpaste: () => (
+    <svg viewBox="0 0 200 110">
+      {/* table surface */}
+      <rect x="0" y="102" width="200" height="8" fill="#a98363" />
+      {/* flask body (rounded conical) */}
+      <path d="M 84 56 L 80 100 L 130 100 L 126 56 L 132 30 L 78 30 Z"
+            fill="#dbeefb" stroke="#1c2541" strokeWidth="1.4" />
+      {/* neck */}
+      <rect x="96" y="22" width="18" height="10" fill="#dbeefb" stroke="#1c2541" strokeWidth="1.4" />
+      {/* coloured liquid remaining in the flask */}
+      <path d="M 81 88 L 82 99 L 128 99 L 129 88 Z" fill="#ff9aa2" opacity="0.9" />
+      {/* foam erupting upward out of the neck */}
+      <g className="erupt">
+        <ellipse cx="105" cy="14" rx="16" ry="10" fill="#fff" />
+        <circle cx="96"  cy="8"  r="6" fill="#fff5a5" />
+        <circle cx="114" cy="6"  r="7" fill="#ffd6d6" />
+        <circle cx="105" cy="20" r="6" fill="#caf0f8" />
+        <circle cx="118" cy="14" r="5" fill="#fff" />
+      </g>
+      {/* puffs of steam above the foam */}
+      <g className="steam"><ellipse cx="105" cy="2" rx="7" ry="3" fill="#ddd" opacity="0.7" /></g>
+      <g className="steam" style={{ animationDelay: '0.9s' }}><ellipse cx="92" cy="4" rx="6" ry="3" fill="#ddd" opacity="0.6" /></g>
+      <g className="steam" style={{ animationDelay: '1.7s' }}><ellipse cx="120" cy="6" rx="6" ry="3" fill="#ddd" opacity="0.55" /></g>
+      {/* foam spilling down the LEFT side of the flask */}
+      <g className="drip">
+        <ellipse cx="78" cy="60" rx="8" ry="6" fill="#fff5a5" />
+        <ellipse cx="72" cy="72" rx="8" ry="6" fill="#fff" />
+        <ellipse cx="66" cy="84" rx="8" ry="5" fill="#ffd6d6" />
+      </g>
+      {/* foam spilling down the RIGHT side of the flask */}
+      <g className="drip" style={{ animationDelay: '0.6s' }}>
+        <ellipse cx="132" cy="60" rx="8" ry="6" fill="#caf0f8" />
+        <ellipse cx="138" cy="72" rx="8" ry="6" fill="#fff5a5" />
+        <ellipse cx="144" cy="84" rx="8" ry="5" fill="#fff" />
+      </g>
+      {/* Peltier tile pressed against the flask, "reading" the heat */}
+      <g className="wiggle">
+        <rect x="40" y="74" width="22" height="18" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.2" />
+        <line x1="40" y1="80" x2="62" y2="80" stroke="#1c2541" strokeWidth="0.6" />
+        <line x1="40" y1="86" x2="62" y2="86" stroke="#1c2541" strokeWidth="0.6" />
+        <text x="51" y="70" textAnchor="middle" fontSize="6" fill="#1c2541" fontWeight="bold">Peltier</text>
+        {/* probe wires off the tile */}
+        <line x1="44" y1="92" x2="30" y2="100" stroke="#e63946" strokeWidth="1.2" />
+        <line x1="58" y1="92" x2="30" y2="100" stroke="#000" strokeWidth="1.2" />
+      </g>
+      {/* tiny voltage spark indicator on the wires */}
+      <text x="22" y="100" fontSize="9" fill="#ffb703" fontWeight="bold" className="flicker">⚡</text>
     </svg>
   ),
 };
@@ -1039,7 +1125,7 @@ function WiringDiagram() {
   return (
     <div className="card">
       <h2>🔌 Build It! Wiring Diagram</h2>
-      <p>This is the real circuit. The little parts (resistors, diodes and a transistor) are seat-belts that keep too much voltage from reaching the tiny Pi. Ask a grown-up to help, and always unplug the Pi before changing wires.</p>
+      <p>This is the real circuit. The little parts (a couple of resistors and two diodes) are seat-belts that keep too much voltage from reaching the tiny Pi. Ask a grown-up to help, and always unplug the Pi before changing wires.</p>
 
       <h3>The whole circuit — Pi ↔ MCP3008 ↔ Peltier</h3>
       <p style={{ margin: '0 0 10px', color: 'var(--ink-soft)' }}>
@@ -1113,9 +1199,9 @@ function WiringDiagram() {
           );
         })}
 
-        {/* Station signal arrow on the LEFT side of MCP pointing INTO CH2 */}
+        {/* Station signal arrow on the LEFT side of MCP pointing INTO CH1 */}
         {[
-          { ch: 3, emoji: '🔥', name: 'Heat signal in' },
+          { ch: 2, emoji: '🔥', name: 'Heat signal in' },
         ].map(s => {
           const c = mcpPos(s.ch);
           return (
@@ -1173,8 +1259,8 @@ function WiringDiagram() {
         <div className="desc-group">
           <h4>🔬 MCP3008 chip pins</h4>
           <ul>
-            <li><strong>Pin 3 (CH2)</strong> — Analog input for the <em>Heat</em> station. The voltage at this pin gets sampled and turned into a 0–1023 number.</li>
-            <li><strong>Pins 1, 2, 4–8 (CH0, CH1, CH3–CH7)</strong> — Seven spare channels. Unused in this build; great for adding more sensors later.</li>
+            <li><strong>Pin 2 (CH1)</strong> — Analog input for the <em>Heat</em> station. The voltage at this pin gets sampled and turned into a 0–1023 number.</li>
+            <li><strong>Pins 1, 3–8 (CH0, CH2–CH7)</strong> — Seven spare channels. Unused in this build; great for adding more sensors later.</li>
             <li><strong>Pin 9 (DGND)</strong> — Digital ground. Wired to Pi pin 6.</li>
             <li><strong>Pin 10 (CS)</strong> — Chip Select input. Listens to Pi pin 24 to know when to wake up.</li>
             <li><strong>Pin 11 (DIN)</strong> — Data In. Receives instructions from Pi pin 19.</li>
@@ -1204,9 +1290,8 @@ function WiringDiagram() {
 
       <h3>Extra parts you'll need (on top of the Peltier tile)</h3>
       <ul className="parts-list">
-        <li><strong>Resistors (¼ W):</strong> 1× 10kΩ (R5), 1× 1kΩ (R6)</li>
-        <li><strong>Diode:</strong> 1× 1N4148 small-signal (D3)</li>
-        <li><strong>Transistor:</strong> 1× 2N3904 NPN (Q1) for the Heat amplifier</li>
+        <li><strong>Resistors (¼ W):</strong> 1× 1kΩ (R1, series limiter), 1× 10kΩ (R2, pull-down)</li>
+        <li><strong>Diodes:</strong> 2× 1N4148 small-signal (D1 reverse-voltage clamp, D2 over-voltage clamp)</li>
       </ul>
 
       <h3>Build the Pi ↔ MCP3008 brain</h3>
@@ -1219,8 +1304,8 @@ function WiringDiagram() {
         <li><strong>Power:</strong> <em>red</em> wire from Pi <strong>pin 1</strong> (3V3) to MCP <strong>pin 16</strong> (VDD); add a short jumper from MCP pin 16 to MCP <strong>pin 15</strong> (VREF).</li>
         <li><strong>Ground:</strong> <em>black</em> wire from Pi <strong>pin 6</strong> (GND) to MCP <strong>pin 9</strong> (DGND); short jumper from pin 9 to MCP <strong>pin 14</strong> (AGND).</li>
         <li><strong>SPI:</strong> <em>yellow</em> Pi <strong>pin 23</strong> (SCLK/GPIO11) → MCP <strong>pin 13</strong> (CLK); <em>green</em> Pi <strong>pin 21</strong> (MISO/GPIO9) → MCP <strong>pin 12</strong> (DOUT); <em>blue</em> Pi <strong>pin 19</strong> (MOSI/GPIO10) → MCP <strong>pin 11</strong> (DIN); <em>purple</em> Pi <strong>pin 24</strong> (CE0/GPIO8) → MCP <strong>pin 10</strong> (CS).</li>
-        <li>Build the Heat station's mini-circuit using the card above (Heat → CH2).</li>
-        <li>Double-check every part letter (R1, D1, Q1…) against the diagrams before powering on.</li>
+        <li>Build the Heat station's mini-circuit using the card above (Heat → CH1).</li>
+        <li>Double-check every part letter (R1, R2, D1, D2) against the diagram before powering on.</li>
         <li>
           Plug the Pi back in and start the server. Two options:
           <ul style={{ marginTop: 6 }}>
@@ -1233,9 +1318,9 @@ function WiringDiagram() {
       <div className="safety">
         <strong>Grown-up helper rules:</strong>
         <ul style={{ margin: '6px 0 0 18px' }}>
-          <li>Never plug the Peltier <em>directly</em> into a chip channel — always go through its protection circuit.</li>
-          <li>The diode has a stripe on one end (the cathode). The stripe faces toward the chip / away from the Peltier.</li>
-          <li>The 2N3904 transistor has a flat side. With the flat side facing you, the pins are <strong>E – B – C</strong>.</li>
+          <li>Never plug the Peltier <em>directly</em> into a chip channel — always go through R1 and the clamp diodes.</li>
+          <li>Each 1N4148 has a stripe on one end (the cathode). For D2 the stripe faces the 3V3 rail; for D1 the stripe faces the signal node (away from GND).</li>
+          <li>For the elephant-toothpaste experiment, always use a grown-up helper. Stick to drug-store 3% hydrogen peroxide — never the 30%+ "concentrated" kind, which burns skin.</li>
           <li>The Peltier can get warm — hold the hot side with a coin or metal spoon, not bare fingers.</li>
           <li>Always unplug the Pi before changing wires.</li>
         </ul>
