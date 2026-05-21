@@ -35,7 +35,7 @@ README.md                        # you are here
 | 6 × jumper wires (6 colours) | Red, black, yellow, green, blue, purple — one per signal. |
 | Peltier tile (TEC1-12706) | Heat station — temperature gap → electricity. |
 | Resistors | 1 × 1 kΩ (R1, series limiter), 1 × 10 kΩ (R2, pull-down). ¼ W is fine. |
-| Diodes | 2 × 1N4148 small signal (D1 reverse-V clamp, D2 over-V clamp). |
+| Diodes | 2 × 1N4007 rectifier (D1 reverse-V clamp, D2 over-V clamp). 1N4148 also fine — R1 limits clamp current to a few mA either way. |
 
 No capacitors are required.
 
@@ -88,12 +88,13 @@ All values quoted are in the wiring section of the dashboard's `🔌 Build` tab.
 
 | Station | Channel | Conditioning |
 |---|---|---|
-| 🔥 Heat | CH1 (pin 2) | R1 1 kΩ series, R2 10 kΩ pull-down, D1 1N4148 clamp to GND (anode at GND), D2 1N4148 clamp to 3V3 (cathode at 3V3) |
+| 🔥 Heat | CH1 (pin 2) | R1 1 kΩ series, R2 10 kΩ pull-down, D1 1N4007 clamp to GND (anode at GND), D2 1N4007 clamp to 3V3 (cathode at 3V3). 1N4148 substitutes 1:1. |
 
 The Peltier voltage drives CH1 directly — no transistor amplifier. A
 TEC1-12706 puts out ~50 mV/K, so a warm bottle from an exothermic
 reaction (elephant toothpaste, hot water) easily reaches the 1–3 V
-range the ADC reads well. R1 + the two 1N4148 clamps protect the chip
+range the ADC reads well. R1 + the two 1N4007 clamps (a 1N4148 works
+identically here, just in a smaller package) protect the chip
 pin against a flipped tile (negative voltage) and against a very hot
 reaction (voltages above the 3.3 V rail).
 

@@ -679,8 +679,8 @@ const STATION_TECH = {
       { label: 'Peltier tile (TEC1-12706)', desc: 'A thermoelectric module. When one side is hotter than the other (Seebeck effect), it makes a voltage — about 50 mV per °C of temperature difference, so a hot elephant-toothpaste bottle (~30–60 °C above the table) easily produces 1.5–3 V.' },
       { label: 'R1 (1 kΩ)', desc: 'Series current limiter. Sits between the Peltier and the chip pin. If the voltage ever shoots above the 3.3 V rail (or below 0 V), R1 limits the current that flows into the clamp diodes — protecting both them and the chip.' },
       { label: 'R2 (10 kΩ)', desc: 'Pull-down to GND. Defines a 0 V reading when nothing is connected, and gives the chip pin a steady reference. 10 kΩ is high enough that it barely loads the Peltier (it draws only ~0.1 mA at 1 V).' },
-      { label: 'D1 (1N4148)', desc: 'Reverse-voltage clamp. Anode on GND, cathode on the signal node. If the Peltier is wired backwards (cold side warm, hot side cold) the node would try to go negative — D1 turns on and pins it at about −0.3 V, safe for the ADC.' },
-      { label: 'D2 (1N4148)', desc: 'Over-voltage clamp. Anode on the signal node, cathode on 3V3. If a very hot reaction pushes the Peltier above ~3.9 V, D2 turns on and shunts the excess into the 3V3 rail, protecting the chip pin (which is only rated to 3.3 V + 0.3 V).' },
+      { label: 'D1 (1N4007)', desc: 'Reverse-voltage clamp. Anode on GND, cathode on the signal node. If the Peltier is wired backwards (cold side warm, hot side cold) the node would try to go negative — D1 turns on and pins it at about −0.7 V, safe for the ADC. A 1N4007 is overkill (it is rated 1000 V / 1 A versus the 1N4148\'s 100 V / 200 mA) but works fine because R1 limits the clamp current to a few mA.' },
+      { label: 'D2 (1N4007)', desc: 'Over-voltage clamp. Anode on the signal node, cathode on 3V3. If a very hot reaction pushes the Peltier above ~4 V, D2 turns on and shunts the excess into the 3V3 rail, protecting the chip pin (which is only rated to 3.3 V + 0.3 V). Same 1N4007 — slow recovery and slightly higher leakage than a 1N4148 are irrelevant for our 0.5 s DC sampling.' },
     ],
     circuit: (
       <svg viewBox="0 0 360 220">
@@ -705,7 +705,7 @@ const STATION_TECH = {
         <polygon points="160,80 176,80 168,66" fill="#1c2541" />
         <line x1="160" y1="66" x2="176" y2="66" stroke="#1c2541" strokeWidth="2" />
         <line x1="168" y1="66" x2="168" y2="22" stroke="#1c2541" strokeWidth="2" />
-        <text x="180" y="74" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4148</text>
+        <text x="180" y="74" fontSize="9" fill="#1c2541" fontWeight="bold">D2 · 1N4007</text>
         <text x="180" y="84" fontSize="8" fill="#1c2541">over-V clamp</text>
         {/* D1: reverse-voltage clamp (GND → node, triangle points up, stripe at top) */}
         <circle cx="222" cy="104" r="2.8" fill="#1c2541" />
@@ -713,7 +713,7 @@ const STATION_TECH = {
         <line x1="214" y1="128" x2="230" y2="128" stroke="#1c2541" strokeWidth="2" />
         <polygon points="214,144 230,144 222,128" fill="#1c2541" />
         <line x1="222" y1="144" x2="222" y2="180" stroke="#000" strokeWidth="2" />
-        <text x="234" y="138" fontSize="9" fill="#1c2541" fontWeight="bold">D1 · 1N4148</text>
+        <text x="234" y="138" fontSize="9" fill="#1c2541" fontWeight="bold">D1 · 1N4007</text>
         <text x="234" y="148" fontSize="8" fill="#1c2541">reverse-V clamp</text>
         {/* R2 pull-down */}
         <circle cx="272" cy="104" r="2.8" fill="#1c2541" />
@@ -728,8 +728,8 @@ const STATION_TECH = {
         <text x="328" y="186" fontSize="9" fill="#1c2541">GND</text>
       </svg>
     ),
-    circuitNote: 'Straight-through circuit — the Peltier voltage goes directly to CH1 through R1. The pair of 1N4148 clamp diodes catches voltages outside 0–3.3 V (D1 stops negative spikes from a flipped tile; D2 stops a very hot reaction from pushing past the 3V3 rail). R2 holds the line at 0 V when no Peltier is plugged in.',
-    build: <>Peltier + → R1 (1 kΩ) → signal node. From the node: a wire straight to MCP <strong>pin 2</strong> (CH1); D2 (1N4148, stripe pointing up toward 3V3) to the 3V3 rail; D1 (1N4148, stripe pointing up toward the node) coming from GND; and R2 (10 kΩ) down to GND. Peltier − to GND. No transistor needed — the Peltier drives CH1 directly.</>,
+    circuitNote: 'Straight-through circuit — the Peltier voltage goes directly to CH1 through R1. The pair of 1N4007 clamp diodes catches voltages outside 0–3.3 V (D1 stops negative spikes from a flipped tile; D2 stops a very hot reaction from pushing past the 3V3 rail). R2 holds the line at 0 V when no Peltier is plugged in. (A 1N4148 would work too — the beefier 1N4007 is overkill for a few-mA clamp, but the only practical difference here is the larger DO-41 package.)',
+    build: <>Peltier + → R1 (1 kΩ) → signal node. From the node: a wire straight to MCP <strong>pin 2</strong> (CH1); D2 (1N4007, stripe pointing up toward 3V3) to the 3V3 rail; D1 (1N4007, stripe pointing up toward the node) coming from GND; and R2 (10 kΩ) down to GND. Peltier − to GND. No transistor needed — the Peltier drives CH1 directly.</>,
   },
 };
 
@@ -1214,7 +1214,7 @@ function BuildDetails({ station }) {
             <li>1 × MCP3008 ADC chip (turns analog signals into numbers the Pi understands)</li>
             <li>1 × small half-size breadboard + jumper wires (6 colours)</li>
             <li>1 × Peltier tile (TEC1-12706)</li>
-            <li>2 × 1N4148 diodes, 1 × 1 kΩ resistor, 1 × 10 kΩ resistor</li>
+            <li>2 × 1N4007 diodes (1N4148 also fine), 1 × 1 kΩ resistor, 1 × 10 kΩ resistor</li>
             <li>A grown-up helper and a curious brain! 🧠</li>
           </ul>
         </div>
@@ -1480,7 +1480,7 @@ function WiringDiagram() {
       <h3>Extra parts you'll need (on top of the Peltier tile)</h3>
       <ul className="parts-list">
         <li><strong>Resistors (¼ W):</strong> 1× 1kΩ (R1, series limiter), 1× 10kΩ (R2, pull-down)</li>
-        <li><strong>Diodes:</strong> 2× 1N4148 small-signal (D1 reverse-voltage clamp, D2 over-voltage clamp)</li>
+        <li><strong>Diodes:</strong> 2× 1N4007 rectifier (D1 reverse-voltage clamp, D2 over-voltage clamp). 1N4148 also works — either is fine because R1 holds the clamp current to a few mA.</li>
       </ul>
 
       <h3>Build the Pi ↔ MCP3008 brain</h3>
@@ -1508,7 +1508,7 @@ function WiringDiagram() {
         <strong>Grown-up helper rules:</strong>
         <ul style={{ margin: '6px 0 0 18px' }}>
           <li>Never plug the Peltier <em>directly</em> into a chip channel — always go through R1 and the clamp diodes.</li>
-          <li>Each 1N4148 has a stripe on one end (the cathode). For D2 the stripe faces the 3V3 rail; for D1 the stripe faces the signal node (away from GND).</li>
+          <li>Each diode has a stripe on one end (the cathode — 1N4007 has a thick silver band, 1N4148 a thinner black one). For D2 the stripe faces the 3V3 rail; for D1 the stripe faces the signal node (away from GND).</li>
           <li>For the elephant-toothpaste experiment, always use a grown-up helper. Stick to drug-store 3% hydrogen peroxide — never the 30%+ "concentrated" kind, which burns skin.</li>
           <li>The Peltier can get warm — hold the hot side with a coin or metal spoon, not bare fingers.</li>
           <li>Always unplug the Pi before changing wires.</li>
