@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Vidyuth + Sam's Energy Detectives — A Raspberry Pi Kids Project</title>
+<title>Vidyuth + Sam's Elephant Toothpaste Energy Detectives — A Raspberry Pi Kids Project</title>
 <meta name="description" content="A fun, kid-friendly STEM project that turns a Raspberry Pi Zero 2 into an Energy Detective with a hands-on Peltier tile that turns warm fingers into electricity." />
 
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
@@ -79,8 +79,15 @@
     padding: 30px 16px 10px;
   }
   header.hero h1 {
-    font-size: clamp(2rem, 5vw, 3.4rem);
+    /* Long title — keep it on a single line at every viewport size by
+       scaling purely with viewport width (no min floor that would force
+       a wrap on phones), capped at 2rem so it doesn't get huge on ultra-
+       wide monitors. */
+    font-size: min(2.2vw, 2rem);
     margin: 0 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     background: linear-gradient(90deg, #ff6b6b, #ffb703, #06d6a0, #4cc9f0, #b5179e);
     -webkit-background-clip: text;
     background-clip: text;
@@ -1558,7 +1565,7 @@ function App() {
       <a className="skip-link" href="#main">Skip to main content</a>
       <div className="wrap">
         <header className="hero">
-          <h1>⚡ Vidyuth + Sam's Energy Detectives ⚡</h1>
+          <h1>⚡ Vidyuth + Sam's Elephant Toothpaste Energy Detectives ⚡</h1>
           <div className="credit-row">
             <a className="credit-pill" href="https://claude.com/claude-code" target="_blank" rel="noopener noreferrer" aria-label="Built with Claude AI">
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">

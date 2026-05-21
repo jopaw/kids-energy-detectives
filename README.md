@@ -1,4 +1,4 @@
-# ⚡ Vidyuth + Sam's Energy Detectives
+# ⚡ Vidyuth + Sam's Elephant Toothpaste Energy Detectives
 
 A kid-friendly STEM project that turns a **Raspberry Pi Zero 2 W** into a hands-on
 energy explorer. A **Peltier (Heat) tile** generates a small voltage that the
