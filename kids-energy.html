@@ -35,7 +35,41 @@
       radial-gradient(circle at 50% 90%, var(--bg-3) 0, transparent 50%),
       #fffefb;
     min-height: 100vh;
-    line-height: 1.5;
+    line-height: 1.55;
+    font-size: 17px;
+  }
+
+  /* Accessibility: visible focus rings on every interactive element */
+  :where(a, button, summary, [tabindex]):focus-visible {
+    outline: 3px solid #ff6b6b;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  /* Accessibility: skip-to-main link, only visible on focus */
+  .skip-link {
+    position: absolute;
+    left: 12px;
+    top: -100px;
+    background: #1c2541;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    z-index: 999;
+    transition: top .15s;
+  }
+  .skip-link:focus { top: 12px; }
+
+  /* Accessibility: respect "reduce motion" — kill animations for users who ask */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 22px 80px; }
@@ -132,16 +166,34 @@
   }
   .sticky-nav a:hover { transform: translateY(-1px); border-color: #ffb703; }
 
-  .section-heading {
-    text-align: center;
-    margin: 36px 0 6px;
-    font-size: clamp(1.6rem, 4vw, 2.4rem);
-    background: linear-gradient(90deg, #ff6b6b, #ffb703, #06d6a0, #4cc9f0);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  /* For-builders collapsible */
+  details.build-details > summary {
+    cursor: pointer;
+    list-style: none;
+    background: #fff;
+    padding: 18px 22px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
   }
-  .section-sub { text-align: center; margin: 0 auto 14px; max-width: 640px; color: var(--ink-soft); }
+  details.build-details > summary::-webkit-details-marker { display: none; }
+  details.build-details > summary::after {
+    content: '▸';
+    margin-left: auto;
+    transition: transform .2s;
+    color: var(--ink-soft);
+  }
+  details.build-details[open] > summary::after { transform: rotate(90deg); }
+  details.build-details[open] > summary { margin-bottom: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  details.build-details > .build-body {
+    background: #fff;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    padding: 0 22px 22px;
+    margin-top: -4px;
+  }
 
   /* Cards / sections */
   .card {
@@ -154,103 +206,146 @@
   h2 { margin: 0 0 10px; font-size: 1.6rem; }
   h3 { margin: 12px 0 8px; }
 
-  /* Station grid */
-  .stations {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
-  }
-  .station {
-    display: block;
+  /* Experiment hero — the headline elephant-toothpaste card */
+  .experiment-hero {
+    background: linear-gradient(160deg, #ffe9eb 0%, #ffd6d6 55%, #ffc4c8 100%);
     border-radius: var(--radius-lg);
-    padding: 18px;
-    color: var(--ink);
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--card-shadow);
-    border: 4px solid white;
-    transition: transform .15s ease, box-shadow .15s ease;
-  }
-  .station:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(28,37,65,0.18); }
-  .card-hint { margin-top: 10px; font-size: 0.8rem; opacity: 0.7; font-style: italic; }
-  .station.heat  { background: linear-gradient(160deg, #ffd6d6, #ff9aa2); }
-  .station h3 { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; margin: 0 0 8px; }
-  .station .emoji { font-size: 1.8rem; }
-  .station .what {
-    background: rgba(255,255,255,0.6);
-    border-radius: var(--radius-md);
-    padding: 10px 12px;
-    margin: 8px 0;
-    font-size: 0.95rem;
-  }
-  .reading {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    font-weight: bold;
-    font-size: 1.4rem;
-    margin-top: 6px;
-  }
-  .reading .unit { font-size: 0.85rem; color: var(--ink-soft); font-weight: normal; }
-  .bar {
-    height: 10px;
-    background: rgba(255,255,255,0.6);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .bar > span {
-    display: block;
-    height: 100%;
-    background: linear-gradient(90deg, #06d6a0, #ffd166, #ff6b6b);
-    transition: width .8s ease;
-  }
-
-  /* Presentation slide */
-  .slide {
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, #0b132b, #1c2541);
-    color: #f6f7fb;
     padding: 26px;
     box-shadow: var(--card-shadow);
-    position: relative;
+    margin-bottom: 22px;
+    border: 4px solid #fff;
+  }
+  .experiment-hero > h2 {
+    margin: 0 0 6px;
+    font-size: clamp(1.5rem, 3.6vw, 2.1rem);
+    color: #1c2541;
+  }
+  .experiment-hero .lede {
+    margin: 0 0 18px;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 56ch;
+  }
+  .experiment-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 22px;
+    align-items: stretch;
+  }
+  @media (max-width: 760px) {
+    .experiment-grid { grid-template-columns: 1fr; }
+  }
+  .experiment-anim {
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6), 0 6px 16px rgba(28,37,65,0.08);
+  }
+  .experiment-anim svg { width: 100%; max-width: 460px; height: auto; }
+
+  /* Live reading panel */
+  .live-reading {
+    background: #1c2541;
+    color: #fff;
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(28,37,65,0.18);
+  }
+  .live-reading .live-head {
+    display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    font-size: 0.95rem; color: #cfd8e3; letter-spacing: 0.02em;
+  }
+  .live-reading .live-tag {
+    background: #06d6a0; color: #052e2a;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+    animation: blink 1.6s infinite ease-in-out;
+  }
+  .live-reading .live-tag.waiting { background: #ffb703; color: #3a2400; }
+  .live-reading .live-number {
+    display: flex; align-items: baseline; gap: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .live-reading .live-number .num {
+    font-size: clamp(3rem, 8vw, 4.6rem);
+    font-weight: 800;
+    line-height: 1;
+    color: #fff;
+  }
+  .live-reading .live-number .unit { font-size: 1.1rem; color: #cfd8e3; }
+  .live-reading .live-status {
+    font-size: 1.4rem; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .live-reading .live-status .status-emoji { font-size: 1.8rem; }
+  .live-reading.status-cool    .live-status { color: #8ddcff; }
+  .live-reading.status-warming .live-status { color: #ffd166; }
+  .live-reading.status-warm    .live-status { color: #ffb703; }
+  .live-reading.status-hot     .live-status { color: #ff6b6b; }
+  .live-reading .live-bar {
+    height: 14px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 999px;
     overflow: hidden;
   }
-  .slide h2 { color: #ffd166; }
-  .slide .pi {
-    display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
-    background: rgba(255,255,255,0.06);
-    border-radius: var(--radius-md);
-    padding: 14px;
-    margin: 12px 0;
+  .live-reading .live-bar > span {
+    display: block; height: 100%;
+    background: linear-gradient(90deg, #4cc9f0, #ffd166, #ff6b6b);
+    transition: width 0.8s ease;
   }
-  .slide .pi .dot {
-    width: 14px; height: 14px; border-radius: 50%; background: #06d6a0;
-    box-shadow: 0 0 14px #06d6a0;
-    animation: blink 1.4s infinite ease-in-out;
+  .live-reading .live-foot {
+    font-size: 0.85rem; color: #9aa6bd;
   }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 
-  .energy-flow {
+  /* Recipe steps inside the experiment hero */
+  .recipe {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    margin: 22px 0 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-top: 10px;
+    gap: 8px;
   }
-  .flow-cell {
-    background: rgba(255,255,255,0.08);
+  .recipe li {
+    counter-increment: step;
+    background: rgba(255,255,255,0.7);
     border-radius: var(--radius-md);
-    padding: 10px;
-    text-align: center;
-    font-size: 0.9rem;
+    padding: 12px 14px 12px 50px;
+    position: relative;
+    line-height: 1.5;
   }
-  .flow-cell .big { font-size: 1.4rem; font-weight: bold; margin: 4px 0; }
-  .flow-cell .lbl { opacity: .8; }
+  .recipe li::before {
+    content: counter(step);
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 28px; height: 28px;
+    background: #ff6b6b; color: #fff;
+    font-weight: 800;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
 
-  .progress-rings { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
-  .ring-wrap { text-align: center; }
-  .ring-wrap .name { margin-top: 6px; font-size: 0.95rem; opacity: .9; }
+  /* Inline safety note (less alarming than the big yellow safety box) */
+  .safety-inline {
+    margin-top: 14px;
+    background: #fff8e1;
+    border-left: 6px solid #ffb703;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  /* Plain content card hint, used only sparingly now */
+  .card-hint { margin-top: 10px; font-size: 0.8rem; opacity: 0.7; font-style: italic; }
+
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 
   /* Examples */
   .examples {
@@ -453,25 +548,6 @@
     font-weight: bold;
   }
 
-  /* Buttons */
-  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-  button.kid-btn {
-    cursor: pointer;
-    font-family: inherit;
-    font-weight: bold;
-    background: #ff6b6b;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 999px;
-    box-shadow: 0 4px 0 #c44a4a;
-    transition: transform .1s;
-  }
-  button.kid-btn:hover { transform: translateY(-2px); }
-  button.kid-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #c44a4a; }
-  button.kid-btn.alt { background: #4cc9f0; box-shadow: 0 4px 0 #2f9bc1; }
-  button.kid-btn.warn { background: #ffb703; color: #1c2541; box-shadow: 0 4px 0 #b8830a; }
-
   .safety {
     background: #fff3cd;
     border-left: 8px solid #ff6b6b;
@@ -484,9 +560,6 @@
   footer.foot { text-align: center; margin-top: 30px; color: var(--ink-soft); }
 
   /* Energy bolt animation */
-  @keyframes float-up { 0% { transform: translateY(10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-30px); opacity: 0; } }
-  .bolt { position: absolute; font-size: 18px; pointer-events: none; animation: float-up 2.4s infinite; }
-
   /* Spinner */
   @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
   .spin-slow { animation: spin 4s linear infinite; transform-origin: center; }
@@ -537,28 +610,14 @@
   }
   .wiggle { animation: wiggle 0.6s ease-in-out infinite; }
 
-  /* Slide highlight */
-  .live-tag {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 999px;
-    background: #ef476f;
-    color: white;
-    font-size: 0.75rem;
-    margin-left: 8px;
-    animation: blink 1.4s infinite ease-in-out;
-  }
 
-  @media (max-width: 640px) {
-    .energy-flow { grid-template-columns: repeat(2, 1fr); }
-  }
 </style>
 </head>
 <body>
 <div id="root"></div>
 
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo, useRef } = React;
+const { useState, useEffect } = React;
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const formatReading = (v, unit) => v.toFixed(unit === 'mV' ? 0 : 2);
@@ -719,34 +778,6 @@ function useLiveReadings() {
   return { readings, source, history };
 }
 
-function Bolt({ left, delay }) {
-  return <span className="bolt" style={{ left: left + '%', animationDelay: delay + 's' }}>⚡</span>;
-}
-
-function RingGauge({ value, min, max, color, unit, size = 110 }) {
-  const pct = clamp((value - min) / (max - min), 0, 1);
-  const r = (size - 14) / 2;
-  const c = 2 * Math.PI * r;
-  const dash = c * pct;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={size/2} cy={size/2} r={r} stroke="rgba(255,255,255,0.18)" strokeWidth="10" fill="none" />
-      <circle
-        cx={size/2} cy={size/2} r={r}
-        stroke={color} strokeWidth="10" fill="none"
-        strokeLinecap="round"
-        strokeDasharray={`${dash} ${c}`}
-        transform={`rotate(-90 ${size/2} ${size/2})`}
-        style={{ transition: 'stroke-dasharray 0.7s ease' }}
-      />
-      <text x="50%" y="46%" textAnchor="middle" fill="#fff" fontSize="18" fontWeight="bold">
-        {formatReading(value, unit)}
-      </text>
-      <text x="50%" y="62%" textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="11">{unit}</text>
-    </svg>
-  );
-}
-
 const ExampleAnims = {
   PowerPlant: () => (
     <svg viewBox="0 0 200 110">
@@ -780,129 +811,141 @@ const ExampleAnims = {
     </svg>
   ),
   ElephantToothpaste: () => (
-    <svg viewBox="0 0 200 110">
+    <svg viewBox="0 0 240 180" role="img" aria-label="Elephant toothpaste foam erupting from a flask, with a Peltier tile pressed against the side to read the heat">
       {/* table surface */}
-      <rect x="0" y="102" width="200" height="8" fill="#a98363" />
-      {/* flask body (rounded conical) */}
-      <path d="M 84 56 L 80 100 L 130 100 L 126 56 L 132 30 L 78 30 Z"
-            fill="#dbeefb" stroke="#1c2541" strokeWidth="1.4" />
+      <rect x="0" y="166" width="240" height="14" fill="#a98363" />
+      <line x1="0" y1="166" x2="240" y2="166" stroke="#7a5d44" strokeWidth="1" />
+      {/* steam puffs above the eruption */}
+      <g className="steam"><ellipse cx="148" cy="22" rx="10" ry="5" fill="#ddd" opacity="0.65" /></g>
+      <g className="steam" style={{ animationDelay: '0.9s' }}><ellipse cx="130" cy="28" rx="8" ry="4" fill="#ddd" opacity="0.55" /></g>
+      <g className="steam" style={{ animationDelay: '1.7s' }}><ellipse cx="166" cy="30" rx="9" ry="4" fill="#ddd" opacity="0.5" /></g>
+      {/* flask body (Erlenmeyer-style) */}
+      <path d="M 122 86 L 110 162 L 192 162 L 180 86 L 188 56 L 114 56 Z"
+            fill="#e6f1fb" stroke="#1c2541" strokeWidth="1.6" />
       {/* neck */}
-      <rect x="96" y="22" width="18" height="10" fill="#dbeefb" stroke="#1c2541" strokeWidth="1.4" />
-      {/* coloured liquid remaining in the flask */}
-      <path d="M 81 88 L 82 99 L 128 99 L 129 88 Z" fill="#ff9aa2" opacity="0.9" />
-      {/* foam erupting upward out of the neck */}
+      <rect x="138" y="44" width="26" height="14" fill="#e6f1fb" stroke="#1c2541" strokeWidth="1.6" />
+      {/* coloured liquid still inside the flask */}
+      <path d="M 113 142 L 115 160 L 187 160 L 189 142 Z" fill="#ff9aa2" opacity="0.9" />
+      {/* foam erupting upward from the neck */}
       <g className="erupt">
-        <ellipse cx="105" cy="14" rx="16" ry="10" fill="#fff" />
-        <circle cx="96"  cy="8"  r="6" fill="#fff5a5" />
-        <circle cx="114" cy="6"  r="7" fill="#ffd6d6" />
-        <circle cx="105" cy="20" r="6" fill="#caf0f8" />
-        <circle cx="118" cy="14" r="5" fill="#fff" />
+        <ellipse cx="151" cy="32" rx="22" ry="14" fill="#fff" />
+        <circle cx="138" cy="22" r="9" fill="#fff5a5" />
+        <circle cx="164" cy="20" r="10" fill="#ffd6d6" />
+        <circle cx="155" cy="40" r="8" fill="#caf0f8" />
+        <circle cx="170" cy="32" r="7" fill="#fff" />
+        <circle cx="142" cy="38" r="6" fill="#fff5a5" />
       </g>
-      {/* puffs of steam above the foam */}
-      <g className="steam"><ellipse cx="105" cy="2" rx="7" ry="3" fill="#ddd" opacity="0.7" /></g>
-      <g className="steam" style={{ animationDelay: '0.9s' }}><ellipse cx="92" cy="4" rx="6" ry="3" fill="#ddd" opacity="0.6" /></g>
-      <g className="steam" style={{ animationDelay: '1.7s' }}><ellipse cx="120" cy="6" rx="6" ry="3" fill="#ddd" opacity="0.55" /></g>
       {/* foam spilling down the LEFT side of the flask */}
       <g className="drip">
-        <ellipse cx="78" cy="60" rx="8" ry="6" fill="#fff5a5" />
-        <ellipse cx="72" cy="72" rx="8" ry="6" fill="#fff" />
-        <ellipse cx="66" cy="84" rx="8" ry="5" fill="#ffd6d6" />
+        <ellipse cx="108" cy="100" rx="11" ry="8" fill="#fff5a5" />
+        <ellipse cx="100" cy="120" rx="11" ry="8" fill="#fff" />
+        <ellipse cx="94"  cy="140" rx="11" ry="7" fill="#ffd6d6" />
       </g>
       {/* foam spilling down the RIGHT side of the flask */}
       <g className="drip" style={{ animationDelay: '0.6s' }}>
-        <ellipse cx="132" cy="60" rx="8" ry="6" fill="#caf0f8" />
-        <ellipse cx="138" cy="72" rx="8" ry="6" fill="#fff5a5" />
-        <ellipse cx="144" cy="84" rx="8" ry="5" fill="#fff" />
+        <ellipse cx="194" cy="100" rx="11" ry="8" fill="#caf0f8" />
+        <ellipse cx="202" cy="120" rx="11" ry="8" fill="#fff5a5" />
+        <ellipse cx="208" cy="140" rx="11" ry="7" fill="#fff" />
       </g>
-      {/* Peltier tile pressed against the flask, "reading" the heat */}
+      {/* heat arrow from flask to Peltier */}
+      <g className="flicker">
+        <line x1="105" y1="110" x2="72" y2="120" stroke="#ff6b6b" strokeWidth="2.5" />
+        <polygon points="72,114 60,120 72,126" fill="#ff6b6b" />
+        <text x="83" y="106" fontSize="10" fontWeight="bold" fill="#ff6b6b">heat ➜</text>
+      </g>
+      {/* Peltier tile, slightly wiggling as it absorbs heat */}
       <g className="wiggle">
-        <rect x="40" y="74" width="22" height="18" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.2" />
-        <line x1="40" y1="80" x2="62" y2="80" stroke="#1c2541" strokeWidth="0.6" />
-        <line x1="40" y1="86" x2="62" y2="86" stroke="#1c2541" strokeWidth="0.6" />
-        <text x="51" y="70" textAnchor="middle" fontSize="6" fill="#1c2541" fontWeight="bold">Peltier</text>
-        {/* probe wires off the tile */}
-        <line x1="44" y1="92" x2="30" y2="100" stroke="#e63946" strokeWidth="1.2" />
-        <line x1="58" y1="92" x2="30" y2="100" stroke="#000" strokeWidth="1.2" />
+        <rect x="22" y="106" width="38" height="32" rx="2" fill="#ffd6d6" stroke="#1c2541" strokeWidth="1.4" />
+        {/* ceramic surface texture */}
+        <line x1="22" y1="115" x2="60" y2="115" stroke="#1c2541" strokeWidth="0.5" opacity="0.5" />
+        <line x1="22" y1="124" x2="60" y2="124" stroke="#1c2541" strokeWidth="0.5" opacity="0.5" />
+        <line x1="22" y1="133" x2="60" y2="133" stroke="#1c2541" strokeWidth="0.5" opacity="0.5" />
+        <text x="41" y="100" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#1c2541">Peltier</text>
+        {/* probe wires going off to the breadboard */}
+        <line x1="28" y1="138" x2="14" y2="160" stroke="#e63946" strokeWidth="1.6" />
+        <line x1="54" y1="138" x2="14" y2="160" stroke="#1c2541" strokeWidth="1.6" />
       </g>
-      {/* tiny voltage spark indicator on the wires */}
-      <text x="22" y="100" fontSize="9" fill="#ffb703" fontWeight="bold" className="flicker">⚡</text>
+      {/* voltage spark on the wires */}
+      <text x="6" y="158" fontSize="14" fontWeight="bold" fill="#ffb703" className="flicker">⚡</text>
     </svg>
   ),
 };
 
-function StationCard({ station, value }) {
-  const [lo, hi] = station.range;
-  const pct = clamp((value - lo) / (hi - lo), 0, 1) * 100;
-  return (
-    <a href={`#station-${station.id}`} className={`station ${station.cls}`}>
-      <Bolt left={10} delay={0} />
-      <Bolt left={70} delay={0.7} />
-      <Bolt left={45} delay={1.4} />
-      <h3><span className="emoji">{station.emoji}</span>{station.name}</h3>
-      <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-        {station.from} ➜ {station.to}
-      </div>
-      <div className="what">{station.blurb}</div>
-      <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Sensor: {station.sensor}</div>
-      <div className="reading">
-        {formatReading(value, station.unit)} <span className="unit">{station.unit}</span>
-      </div>
-      <div className="bar"><span style={{ width: pct + '%' }} /></div>
-      <div className="card-hint">tap for full details ↓</div>
-    </a>
-  );
+// Translate a raw mV reading into a kid-readable status. Plain-language
+// labels matter for accessibility: kids (and screen-reader users) can
+// understand "HOT!" before they parse "1843 mV".
+function heatStatus(value) {
+  const pct = clamp(value / 3000, 0, 1) * 100;
+  if (value >= 1500) return { id: 'hot',     emoji: '🔥', label: 'HOT!',        pct };
+  if (value >= 500)  return { id: 'warm',    emoji: '🔥', label: 'Warm',        pct };
+  if (value >= 100)  return { id: 'warming', emoji: '🌡️', label: 'Warming up',  pct };
+  return                  { id: 'cool',    emoji: '🧊', label: 'Cool',          pct };
 }
 
-function PresentationSlide({ readings, source }) {
-  const totalPct = useMemo(() => {
-    const parts = STATIONS.map(s => {
-      const [lo, hi] = s.range;
-      return clamp((readings[s.id] - lo) / (hi - lo), 0, 1);
-    });
-    return parts.reduce((a,b) => a+b, 0) / parts.length;
-  }, [readings]);
-
+function ExperimentHero({ value, source }) {
+  const status = heatStatus(value);
+  const ToothpasteAnim = ExampleAnims.ElephantToothpaste;
   return (
-    <div className="slide">
-      <h2>Live Energy Dashboard <span className="live-tag">{source === 'pi' ? 'LIVE' : 'WAITING'}</span></h2>
-      <p style={{ marginTop: 0, opacity: 0.85 }}>
-        {source === 'pi'
-          ? 'Pi Zero 2 W is reading the Peltier tile through the MCP3008 every half second.'
-          : 'Waiting for the Pi… make sure the Pi is on, you are connected to its Wi-Fi, and you opened http://energy.local.'}
+    <section
+      id="experiment"
+      className="experiment-hero"
+      aria-labelledby="experiment-title"
+    >
+      <h2 id="experiment-title">🧪 Elephant Toothpaste meets the Peltier Tile</h2>
+      <p className="lede">
+        A foamy, fizzy chemical reaction gives off real heat — and a Peltier
+        tile turns that heat straight into electricity. Watch the dashboard
+        climb as the foam erupts!
       </p>
 
-      <div className="pi">
-        <span className="dot" aria-label="online" />
-        <strong style={{ color: source === 'pi' ? '#06d6a0' : '#ef476f' }}>
-          {source === 'pi' ? 'raspberry-pi-zero-2 online' : 'no Pi connection — retrying…'}
-        </strong>
-        <span style={{ opacity: 0.8 }}>· MCP3008 ADC · SPI bus</span>
-        <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: 999 }}>
-          Total energy mix: {(totalPct * 100).toFixed(0)}%
-        </span>
+      <div className="experiment-grid">
+        <div className="experiment-anim" aria-hidden="true">
+          <ToothpasteAnim />
+        </div>
+
+        <div
+          className={`live-reading status-${status.id}`}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="live-head">
+            <span>Live heat reading</span>
+            <span className={`live-tag${source === 'pi' ? '' : ' waiting'}`}>
+              {source === 'pi' ? 'LIVE' : 'WAITING'}
+            </span>
+          </div>
+          <div className="live-number">
+            <span className="num">{formatReading(value, 'mV')}</span>
+            <span className="unit">mV</span>
+          </div>
+          <div className="live-status">
+            <span className="status-emoji" aria-hidden="true">{status.emoji}</span>
+            <span>{status.label}</span>
+          </div>
+          <div className="live-bar" aria-hidden="true">
+            <span style={{ width: status.pct + '%' }} />
+          </div>
+          <div className="live-foot">
+            {source === 'pi'
+              ? 'Pi Zero 2 W · MCP3008 channel 1 · sampled every 0.5 s'
+              : 'Waiting for the Pi — make sure you are on the EnergyDetectives Wi-Fi.'}
+          </div>
+        </div>
       </div>
 
-      <div className="progress-rings">
-        {STATIONS.map(s => (
-          <div className="ring-wrap" key={s.id}>
-            <RingGauge value={readings[s.id]} min={s.range[0]} max={s.range[1]} color={s.color} unit={s.unit} />
-            <div className="name">{s.emoji} {s.name.replace(' Power Station','')}</div>
-          </div>
-        ))}
-      </div>
+      <h3 style={{ marginTop: 22 }}>Try it yourself</h3>
+      <ol className="recipe">
+        <li><strong>Place the Peltier flat on a cool table.</strong> Wires go to the breadboard; the smooth ceramic face will press against the bottle.</li>
+        <li><strong>Mix the foam in a tall, narrow bottle:</strong> ½ cup of <em>3% drug-store</em> hydrogen peroxide, a big squirt of dish soap, a few drops of food colouring, then 1 tbsp dry yeast stirred into 3 tbsp warm water.</li>
+        <li><strong>Press the bottle's side firmly against the Peltier</strong> the second the foam starts to erupt. Keep the other face of the tile flat on the table so it stays cool.</li>
+        <li><strong>Watch the reading climb.</strong> A bigger temperature gap = a bigger voltage. The status above will go from <em>Cool</em> ➜ <em>Warming up</em> ➜ <em>Warm</em> ➜ <em>HOT!</em></li>
+      </ol>
 
-      <div className="energy-flow">
-        {STATIONS.map(s => (
-          <div className="flow-cell" key={s.id}>
-            <div className="lbl">{s.from}</div>
-            <div className="big" style={{ color: s.color }}>
-              {formatReading(readings[s.id], s.unit)} {s.unit}
-            </div>
-            <div className="lbl">➜ {s.to}</div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <p className="safety-inline" role="note">
+        ⚠️ <strong>Grown-up helpers only.</strong> Use <strong>3% drug-store</strong> hydrogen peroxide — never the 30%+ "concentrated" kind, which burns skin. Wear safety glasses, work over a tray, and don't taste the foam.
+      </p>
+    </section>
   );
 }
 
@@ -914,13 +957,15 @@ function TimeSeriesGraph({ data, color, unit, min, max }) {
 
   if (!data || data.length < 2) {
     return (
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', background: '#fafaf2', borderRadius: 8 }}>
-        <text x={W/2} y={H/2} textAnchor="middle" fill="#888" fontSize="13">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Waiting for the first samples from the Pi" style={{ width: '100%', height: 'auto', background: '#fafaf2', borderRadius: 8 }}>
+        <text x={W/2} y={H/2} textAnchor="middle" fill="#666" fontSize="13">
           waiting for samples from the Pi…
         </text>
       </svg>
     );
   }
+  const latest = data[data.length - 1];
+  const summary = `Heat reading over the last ${Math.round(HISTORY_LENGTH * 0.5)} seconds. Latest value ${formatReading(latest, unit)} ${unit}.`;
 
   const N = data.length;
   const lo = Math.min(min, ...data);
@@ -935,7 +980,7 @@ function TimeSeriesGraph({ data, color, unit, min, max }) {
   const ticks = Array.from({ length: 5 }, (_, i) => lo + (i / 4) * (hi - lo));
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', background: '#fafaf2', borderRadius: 8 }}>
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={summary} style={{ width: '100%', height: 'auto', background: '#fafaf2', borderRadius: 8 }}>
       {ticks.map((v, i) => {
         const yy = yMap(v);
         return (
@@ -982,20 +1027,13 @@ const StationTech = React.memo(function StationTech({ tech, emoji }) {
   );
 });
 
-function StationDetail({ station, value, history }) {
-  const tech = STATION_TECH[station.id];
+function VoltageGraphSection({ station, history }) {
   return (
-    <div id={`station-${station.id}`} className="card station-detail" style={{ borderLeft: `10px solid ${station.color}` }}>
-      <h2>{station.emoji} {station.name}</h2>
-      <div style={{ color: 'var(--ink-soft)' }}>{station.from} ➜ {station.to}</div>
-      <p>{station.blurb}</p>
-      <div style={{ fontWeight: 'bold' }}>
-        Right now the Pi reads: <span style={{ color: station.color }}>
-          {formatReading(value, station.unit)} {station.unit}
-        </span>
-        {tech && <span style={{ color: 'var(--ink-soft)', fontWeight: 'normal' }}> · {tech.channel} (MCP3008 pin {tech.mcpPin})</span>}
-      </div>
-      <h3>📊 Voltage over the last {Math.round(HISTORY_LENGTH * 0.5)} seconds</h3>
+    <section id="voltage" className="card" aria-labelledby="voltage-title">
+      <h2 id="voltage-title">📊 What the Pi has been reading</h2>
+      <p style={{ marginTop: 0, color: 'var(--ink-soft)' }}>
+        Every half-second the Pi takes a fresh reading. Newest is on the right.
+      </p>
       <TimeSeriesGraph
         data={history}
         color={station.color}
@@ -1003,34 +1041,94 @@ function StationDetail({ station, value, history }) {
         min={station.range[0]}
         max={station.range[1]}
       />
-      {station.operate && (
+    </section>
+  );
+}
+
+function ExploreSection({ station }) {
+  // The elephant-toothpaste step is the headline experiment above, so
+  // strip it from "other things to try" to keep this list short.
+  const others = (station.operate || []).filter(s => s.icon !== '🧪');
+  if (others.length === 0) return null;
+  return (
+    <section id="explore" className="card" aria-labelledby="explore-title">
+      <h2 id="explore-title">✨ Other things to try</h2>
+      <p style={{ marginTop: 0, color: 'var(--ink-soft)' }}>
+        Quick experiments you can do right now — no chemistry needed.
+      </p>
+      <ul className="operate-bullets">
+        {others.map((step, i) => (
+          <li key={i}>
+            <span className="bullet-icon" aria-hidden="true">{step.icon}</span>
+            <span className="bullet-text">{step.text}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function LearnSection({ station }) {
+  // Real-life examples minus the elephant toothpaste (already the hero).
+  const examples = (station.examples || []).filter(ex => ex.anim !== 'ElephantToothpaste');
+  return (
+    <section id="learn" className="card" aria-labelledby="learn-title">
+      <h2 id="learn-title">🤔 How does the Peltier tile work?</h2>
+      <p>
+        A Peltier tile is a sandwich of two ceramic plates with tiny chains
+        of metals inside. When one face is <strong>warmer</strong> than the
+        other, heat flows through it — and that flow knocks electrons loose,
+        making a small voltage. The bigger the temperature gap, the bigger
+        the voltage. It's called the <strong>Seebeck effect</strong>.
+      </p>
+      {examples.length > 0 && (
         <>
-          <h3>How to use this station 🎛️</h3>
-          <ul className="operate-bullets">
-            {station.operate.map((step, i) => (
-              <li key={i}>
-                <span className="bullet-icon">{step.icon}</span>
-                <span className="bullet-text">{step.text}</span>
-              </li>
-            ))}
-          </ul>
+          <h3>Where you see this in real life</h3>
+          <div className="examples">
+            {examples.map(ex => {
+              const Anim = ExampleAnims[ex.anim];
+              return (
+                <div className="example" key={ex.title}>
+                  <Anim />
+                  <div className="cap">{ex.title}</div>
+                  <div className="why">{ex.why}</div>
+                </div>
+              );
+            })}
+          </div>
         </>
       )}
-      {tech && <StationTech tech={tech} emoji={station.emoji} />}
-      <h3>3 Real-Life Examples</h3>
-      <div className="examples">
-        {station.examples.map(ex => {
-          const Anim = ExampleAnims[ex.anim];
-          return (
-            <div className="example" key={ex.title}>
-              <Anim />
-              <div className="cap">{ex.title}</div>
-              <div className="why">{ex.why}</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    </section>
+  );
+}
+
+function BuildDetails({ station }) {
+  const tech = STATION_TECH[station.id];
+  return (
+    <section id="build" aria-labelledby="build-title">
+      <details className="build-details">
+        <summary aria-label="Toggle the builders section">
+          <span id="build-title" role="heading" aria-level="2">🔌 For builders — wiring, parts &amp; circuit</span>
+        </summary>
+        <div className="build-body">
+          <p style={{ color: 'var(--ink-soft)' }}>
+            All the technical bits in one place. Skip this section unless
+            you're putting one together yourself.
+          </p>
+          {tech && <StationTech tech={tech} emoji={station.emoji} />}
+          <WiringDiagram />
+          <h3>🧰 What you'll need</h3>
+          <ul>
+            <li>1 × Raspberry Pi Zero 2 W (with a microSD card and power adapter)</li>
+            <li>1 × MCP3008 ADC chip (turns analog signals into numbers the Pi understands)</li>
+            <li>1 × small half-size breadboard + jumper wires (6 colours)</li>
+            <li>1 × Peltier tile (TEC1-12706)</li>
+            <li>2 × 1N4148 diodes, 1 × 1 kΩ resistor, 1 × 10 kΩ resistor</li>
+            <li>A grown-up helper and a curious brain! 🧠</li>
+          </ul>
+        </div>
+      </details>
+    </section>
   );
 }
 
@@ -1330,11 +1428,10 @@ function WiringDiagram() {
 }
 
 const NAV_LINKS = [
-  { href: '#join',       label: '📶 Join' },
-  { href: '#dashboard',  label: '📊 Dashboard' },
-  { href: '#stations',   label: '⚡ Stations' },
-  { href: '#wiring',     label: '🔌 Build' },
-  { href: '#parts',      label: '🧰 Parts' },
+  { href: '#experiment', label: '🧪 Experiment' },
+  { href: '#voltage',    label: '📊 Voltage' },
+  { href: '#learn',      label: '🤔 How it works' },
+  { href: '#build',      label: '🔌 Build' },
 ];
 
 function useWifiInfo() {
@@ -1353,118 +1450,87 @@ function useWifiInfo() {
 function App() {
   const { readings, source, history } = useLiveReadings();
   const wifi = useWifiInfo();
+  const station = STATIONS[0];
+  const value = readings[station.id] || 0;
+  const heatHistory = history[station.id] || [];
 
   return (
-    <div className="wrap">
-      <header className="hero">
-        <h1>⚡ Vidyuth's Energy Detectives ⚡</h1>
-        <div className="credit-row">
-          <a className="credit-pill" href="https://claude.com/claude-code" target="_blank" rel="noopener noreferrer" aria-label="Built with Claude AI">
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 2.5c-5.247 0-9.5 4.253-9.5 9.5s4.253 9.5 9.5 9.5 9.5-4.253 9.5-9.5S17.247 2.5 12 2.5zm0 1.7c4.308 0 7.8 3.492 7.8 7.8s-3.492 7.8-7.8 7.8S4.2 16.308 4.2 12 7.692 4.2 12 4.2zm-2.55 4.05L6.9 15.75h1.74l.56-1.7h3.31l.57 1.7h1.74L12.27 8.25h-2.82zm1.41 1.71h.03l1.18 3.6h-2.4l1.19-3.6zm5.84-1.71v7.5h1.55v-2.55h.92c1.71 0 2.71-.96 2.71-2.49s-1-2.46-2.71-2.46H16.7zm1.55 1.32h.7c.93 0 1.4.39 1.4 1.14s-.47 1.17-1.4 1.17h-.7V9.57z" fill="#cc785c"/>
-            </svg>
-            <span>Built with Claude AI</span>
-          </a>
-          <a className="credit-pill" href="https://github.com/jopaw/kids-energy-detectives" target="_blank" rel="noopener noreferrer" aria-label="View source on GitHub">
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.74-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11 11 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.18 1.84 1.18 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="#1c2541"/>
-            </svg>
-            <span>View on GitHub</span>
-          </a>
-        </div>
-        <p className="sub">
-          Get ready for some energy flowing in your mind. A super fun kids' project where a tiny
-          <strong> Raspberry Pi Zero 2 W</strong> listens to a <strong>Peltier tile</strong> and
-          shows you how a little bit of heat can make electricity!
-        </p>
-        <div className="badges">
-          <span className="badge">Ages 9–12</span>
-          <span className="badge">Build time: 45 min</span>
-          <span className="badge">Skill: ⭐⭐☆☆☆</span>
-          <span className="badge">STEM-approved</span>
-        </div>
-      </header>
+    <>
+      <a className="skip-link" href="#main">Skip to main content</a>
+      <div className="wrap">
+        <header className="hero">
+          <h1>⚡ Vidyuth's Energy Detectives ⚡</h1>
+          <div className="credit-row">
+            <a className="credit-pill" href="https://claude.com/claude-code" target="_blank" rel="noopener noreferrer" aria-label="Built with Claude AI">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2.5c-5.247 0-9.5 4.253-9.5 9.5s4.253 9.5 9.5 9.5 9.5-4.253 9.5-9.5S17.247 2.5 12 2.5zm0 1.7c4.308 0 7.8 3.492 7.8 7.8s-3.492 7.8-7.8 7.8S4.2 16.308 4.2 12 7.692 4.2 12 4.2zm-2.55 4.05L6.9 15.75h1.74l.56-1.7h3.31l.57 1.7h1.74L12.27 8.25h-2.82zm1.41 1.71h.03l1.18 3.6h-2.4l1.19-3.6zm5.84-1.71v7.5h1.55v-2.55h.92c1.71 0 2.71-.96 2.71-2.49s-1-2.46-2.71-2.46H16.7zm1.55 1.32h.7c.93 0 1.4.39 1.4 1.14s-.47 1.17-1.4 1.17h-.7V9.57z" fill="#cc785c"/>
+              </svg>
+              <span>Built with Claude AI</span>
+            </a>
+            <a className="credit-pill" href="https://github.com/jopaw/kids-energy-detectives" target="_blank" rel="noopener noreferrer" aria-label="View source on GitHub">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.74-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11 11 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.18 1.84 1.18 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="#1c2541"/>
+              </svg>
+              <span>View on GitHub</span>
+            </a>
+          </div>
+          <p className="sub">
+            A tiny <strong>Raspberry Pi</strong> watches a <strong>Peltier tile</strong> turn
+            heat into electricity — including the heat from a foamy
+            <strong> elephant-toothpaste reaction</strong>.
+          </p>
+          <div className="badges">
+            <span className="badge">Ages 9–12</span>
+            <span className="badge">With a grown-up</span>
+          </div>
+        </header>
 
-      <nav className="sticky-nav">
-        {NAV_LINKS.map(l => <a key={l.href} href={l.href}>{l.label}</a>)}
-      </nav>
+        <nav className="sticky-nav" aria-label="Section navigation">
+          {NAV_LINKS.map(l => <a key={l.href} href={l.href}>{l.label}</a>)}
+        </nav>
 
-      {wifi && (
-        <section id="join" className="card connect-card">
-          <h2>📶 Show your friends how to join!</h2>
-          <p>This little Pi made its own Wi-Fi just for the experiment. Tell your friends to connect and the dashboard will pop up on their phone!</p>
-          <div className="connect-row">
-            <div className="connect-info">
-              <div className="wifi-creds">
-                <div className="field"><span className="lbl">Wi-Fi name</span><span className="val">{wifi.ssid}</span></div>
-                <div className="field"><span className="lbl">Password</span><span className="val">{wifi.password}</span></div>
-                <div className="field"><span className="lbl">Or open in a browser</span><span className="val">http://{wifi.hostname || 'energy.local'}</span></div>
+        <main id="main">
+          {wifi && (
+            <section id="join" className="card connect-card" aria-labelledby="join-title">
+              <h2 id="join-title">📶 Join the Pi's Wi-Fi</h2>
+              <p>This little Pi made its own Wi-Fi just for the experiment. Connect and the dashboard pops up on your phone.</p>
+              <div className="connect-row">
+                <div className="connect-info">
+                  <div className="wifi-creds">
+                    <div className="field"><span className="lbl">Wi-Fi name</span><span className="val">{wifi.ssid}</span></div>
+                    <div className="field"><span className="lbl">Password</span><span className="val">{wifi.password}</span></div>
+                    <div className="field"><span className="lbl">Or visit</span><span className="val">http://{wifi.hostname || 'energy.local'}</span></div>
+                  </div>
+                  <ol className="connect-steps">
+                    <li>1️⃣ Open <strong>Wi-Fi settings</strong> on a phone, tablet or laptop.</li>
+                    <li>2️⃣ Pick <strong>{wifi.ssid}</strong> and type the password <strong>{wifi.password}</strong> — or scan the QR code with your camera. 📲</li>
+                    <li>3️⃣ If the dashboard doesn't appear, open a browser and go to <strong>http://{wifi.hostname || 'energy.local'}</strong>.</li>
+                  </ol>
+                </div>
+                <div className="qr-block">
+                  <img src="/api/wifi-qr.svg" alt={`QR code to join the ${wifi.ssid} Wi-Fi network`} width="180" height="180" />
+                  <div className="qr-caption">📷 Scan to join</div>
+                </div>
               </div>
-              <ol className="connect-steps">
-                <li>1️⃣ On a phone, tablet or laptop, open <strong>Wi-Fi settings</strong>.</li>
-                <li>2️⃣ Pick <strong>{wifi.ssid}</strong> and type the password <strong>{wifi.password}</strong> — or scan the QR code on the right with your camera. 📲</li>
-                <li>3️⃣ The dashboard should pop up by itself. If it doesn't, open a browser and go to <strong>http://{wifi.hostname || 'energy.local'}</strong> (or <strong>http://{wifi.ip}</strong>).</li>
-              </ol>
-            </div>
-            <div className="qr-block">
-              <img src="/api/wifi-qr.svg" alt={`Scan to join ${wifi.ssid}`} width="180" height="180" />
-              <div className="qr-caption">📷 Point your camera here to join</div>
-            </div>
-          </div>
-        </section>
-      )}
+            </section>
+          )}
 
-      <section className="card">
-        <h2>Hi Energy Detective! 🕵️</h2>
-        <p>
-          Your mission: discover how a tiny bit of <strong>heat</strong> can make
-          <strong> electricity</strong>. A Peltier tile turns a temperature difference into a
-          voltage — even a warm finger is enough! Your trusty sidekick is the Raspberry Pi Zero 2 W,
-          a computer the size of a stick of gum. It will measure the tile and tell you how much
-          energy it sees!
-        </p>
-        <div className="btn-row">
-          <a className="kid-btn" href="#dashboard">See the Live Dashboard →</a>
-          <a className="kid-btn alt" href="#wiring">Show me how to build it →</a>
-        </div>
-      </section>
+          <ExperimentHero value={value} source={source} />
 
-      <section id="dashboard">
-        <PresentationSlide readings={readings} source={source} />
-      </section>
+          <VoltageGraphSection station={station} history={heatHistory} />
 
-      <section id="stations">
-        <h2 className="section-heading">⚡ The Heat Energy Station</h2>
-        <p className="section-sub">A Peltier tile turns a temperature difference into electricity. Scroll down for live readings, graphs and how to use it!</p>
-        <div className="card">
-          <div className="stations">
-            {STATIONS.map(s => <StationCard key={s.id} station={s} value={readings[s.id]} />)}
-          </div>
-        </div>
-        {STATIONS.map(s => (
-          <StationDetail key={s.id} station={s} value={readings[s.id]} history={history[s.id] || []} />
-        ))}
-      </section>
+          <ExploreSection station={station} />
 
-      <section id="wiring">
-        <WiringDiagram />
-      </section>
+          <LearnSection station={station} />
 
-      <section id="parts" className="card">
-        <h2>🧰 What you'll need</h2>
-        <ul>
-          <li>1 × Raspberry Pi Zero 2 W (with a microSD card and power adapter)</li>
-          <li>1 × MCP3008 ADC chip (turns analog signals into numbers the Pi understands)</li>
-          <li>1 × small half-size breadboard + jumper wires (6 colours)</li>
-          <li>1 × Peltier tile (TEC1-12706) — the Heat Station</li>
-          <li>A grown-up helper and a curious brain! 🧠</li>
-        </ul>
-      </section>
+          <BuildDetails station={station} />
+        </main>
 
-      <footer className="foot">
-        Made with ⚡ and ❤️ for curious kids · A Raspberry Pi Zero 2 W STEM project
-      </footer>
-    </div>
+        <footer className="foot">
+          Made with ⚡ and ❤️ for curious kids · A Raspberry Pi Zero 2 W STEM project
+        </footer>
+      </div>
+    </>
   );
 }
 
